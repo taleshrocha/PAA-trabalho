@@ -46,7 +46,7 @@ namespace sc { // linear sequence. Better name: sequence container (same as STL)
         };
 
         //=== The iterator classes.
-        public:
+    public:
         /// Implements tha infrastrcture to support a bidirectional iterator.
         class iterator : public std::bidirectional_iterator_tag
         {
@@ -65,96 +65,96 @@ namespace sc { // linear sequence. Better name: sequence container (same as STL)
             public:
                 iterator( Vertex * ptr_ = nullptr ) : m_ptr{ ptr_ } { /* empty */ }
 
-                ~iterator() = default;
+            ~iterator() = default;
 
-                iterator( const iterator & ptr_ ) = default;
+            iterator( const iterator & ptr_ ) = default;
 
-                iterator& operator=( const iterator & ptr_ ) = default;
+            iterator& operator=( const iterator & ptr_ ) = default;
 
-                reference operator*()
-                { 
-                    return m_ptr->data; 
-                }
+            reference operator*()
+            {
+                return m_ptr->data;
+            }
 
-                const_reference  operator*() const
-                { 
-                    return m_ptr->data; 
-                }
+            const_reference  operator*() const
+            {
+                return m_ptr->data;
+            }
 
-                iterator operator++()
-                {
-                    m_ptr = m_ptr->next;
-                    return *this;
-                }
+            iterator operator++()
+            {
+                m_ptr = m_ptr->next;
+                return *this;
+            }
 
-                iterator operator++(int)
-                {
-                    iterator dummy{ *this };
-                    m_ptr = m_ptr->next;
-                    return dummy;
-                }
+            iterator operator++(int)
+            {
+                iterator dummy{ *this };
+                m_ptr = m_ptr->next;
+                return dummy;
+            }
 
-                iterator operator--()
-                {
-                    m_ptr = m_ptr->prev;
-                    return *this;
-                }
+            iterator operator--()
+            {
+                m_ptr = m_ptr->prev;
+                return *this;
+            }
 
-                iterator operator--(int)
-                {
-                    iterator dummy{ *this };
-                    m_ptr = m_ptr->prev;
-                    return dummy;
-                }
+            iterator operator--(int)
+            {
+                iterator dummy{ *this };
+                m_ptr = m_ptr->prev;
+                return dummy;
+            }
 
-                /// Equality operator.
-                bool operator==( const iterator & rhs_ ) const 
-                {
-                    return m_ptr == rhs_.m_ptr;
-                }
+            /// Equality operator.
+            bool operator==( const iterator & rhs_ ) const
+            {
+                return m_ptr == rhs_.m_ptr;
+            }
 
-                /// Not equality operator.
-                bool operator!=( const iterator & rhs_ ) const 
-                {
-                    return !(m_ptr == rhs_.m_ptr);
-                }
+            /// Not equality operator.
+            bool operator!=( const iterator & rhs_ ) const
+            {
+                return !(m_ptr == rhs_.m_ptr);
+            }
 
-                //=== Other methods that you might want to implement.
-                /// it += 3; // Go back  3 positions within the container. 
-                iterator operator+=( difference_type step )
-                { 
-                    for ( auto i{0}; i < step; i++ ) m_ptr = m_ptr->next; 
-                    return *this;
-                }
+            //=== Other methods that you might want to implement.
+            /// it += 3; // Go back  3 positions within the container.
+            iterator operator+=( difference_type step )
+            {
+                for ( auto i{0}; i < step; i++ ) m_ptr = m_ptr->next;
+                return *this;
+            }
 
-                /// it -= 3; // Go back  3 positions within the container. 
-                iterator operator-=( difference_type step )
-                { 
-                    for ( auto i{0}; i < step; i++ ) m_ptr = m_ptr->prev; 
-                    return *this;
-                }
+            /// it -= 3; // Go back  3 positions within the container.
+            iterator operator-=( difference_type step )
+            {
+                for ( auto i{0}; i < step; i++ ) m_ptr = m_ptr->prev;
+                return *this;
+            }
                 
-                /// it->method()
-                pointer operator->( void ) const
-                { 
-                    return *this; 
-                }
+            /// it->method()
+            pointer operator->( void ) const
+            {
+                return *this;
+            }
 
-                /// it1 - it2
-                difference_type operator-( const iterator & rhs_ ) const
-                {
-                    if (m_ptr > rhs_.m_ptr) return std::distance(rhs_.m_ptr, m_ptr);
-                    return std::distance(m_ptr, rhs_.m_ptr);
-                }
+            /// it1 - it2
+            difference_type operator-( const iterator & rhs_ ) const
+            {
+                if (m_ptr > rhs_.m_ptr) return std::distance(rhs_.m_ptr, m_ptr);
+                return std::distance(m_ptr, rhs_.m_ptr);
+            }
 
                 // We need friendship so the adjacencyList<T> class may access the m_ptr field.
                 friend class adjacencyList<T>;
 
-                /*friend std::ostream & operator<< ( std::ostream & os_, const iterator & s_ )
-                {
-                    os_ << "[@"<< s_.m_ptr << ", val = " << s_.m_ptr->data << "]";
-                    return os_;
-                }*/
+            /*friend std::ostream & operator<< ( std::ostream & os_, const iterator & s_ )
+              {
+              os_ << "[@"<< s_.m_ptr << ", val = " << s_.m_ptr->data << "]";
+              return os_;
+              }*/
         };  
         
         class const_iterator : public std::bidirectional_iterator_tag 
@@ -174,96 +174,96 @@ namespace sc { // linear sequence. Better name: sequence container (same as STL)
             public:
                 const_iterator( Vertex * ptr = nullptr ) : m_ptr{ ptr } { /* empty */ }
 
-                ~const_iterator() = default;
+            ~const_iterator() = default;
 
-                const_iterator( const const_iterator & ) = default;
+            const_iterator( const const_iterator & ) = default;
 
-                const_iterator& operator=( const const_iterator & ) = default;
+            const_iterator& operator=( const const_iterator & ) = default;
 
-                reference operator*()
-                { 
-                    return m_ptr->data; 
-                }
+            reference operator*()
+            {
+                return m_ptr->data;
+            }
 
-                const_reference  operator*() const
-                { 
-                    return m_ptr->data; 
-                }
+            const_reference  operator*() const
+            {
+                return m_ptr->data;
+            }
 
-                const_iterator operator++()
-                {
-                    m_ptr = m_ptr->next;
-                    return *this;
-                }
+            const_iterator operator++()
+            {
+                m_ptr = m_ptr->next;
+                return *this;
+            }
 
-                const_iterator operator++(int)
-                {
-                    const_iterator dummy{ *this };
-                    m_ptr = m_ptr->next;
-                    return dummy;
-                }
+            const_iterator operator++(int)
+            {
+                const_iterator dummy{ *this };
+                m_ptr = m_ptr->next;
+                return dummy;
+            }
 
-                const_iterator operator--()
-                {
-                    m_ptr = m_ptr->prev;
-                    return *this;
-                }
+            const_iterator operator--()
+            {
+                m_ptr = m_ptr->prev;
+                return *this;
+            }
 
-                const_iterator operator--(int)
-                {
-                    const_iterator dummy{ *this };
-                    m_ptr = m_ptr->prev;
-                    return dummy;
-                }
+            const_iterator operator--(int)
+            {
+                const_iterator dummy{ *this };
+                m_ptr = m_ptr->prev;
+                return dummy;
+            }
 
-                /// Equality operator.
-                bool operator==( const const_iterator & rhs_ ) const 
-                {
-                    return m_ptr == rhs_.m_ptr;
-                }
+            /// Equality operator.
+            bool operator==( const const_iterator & rhs_ ) const
+            {
+                return m_ptr == rhs_.m_ptr;
+            }
 
-                /// Not equality operator.
-                bool operator!=( const const_iterator & rhs_ ) const 
-                {
-                    return !(m_ptr == rhs_.m_ptr);
-                }
+            /// Not equality operator.
+            bool operator!=( const const_iterator & rhs_ ) const
+            {
+                return !(m_ptr == rhs_.m_ptr);
+            }
 
-                //=== Other methods that you might want to implement.
-                /// it += 3; // Go back  3 positions within the container. 
-                const_iterator operator+=( difference_type step )
-                { 
-                    for ( auto i{0}; i < step; i++ ) m_ptr = m_ptr->next; 
-                    return *this;
-                }
+            //=== Other methods that you might want to implement.
+            /// it += 3; // Go back  3 positions within the container.
+            const_iterator operator+=( difference_type step )
+            {
+                for ( auto i{0}; i < step; i++ ) m_ptr = m_ptr->next;
+                return *this;
+            }
 
-                /// it -= 3; // Go back  3 positions within the container. 
-                const_iterator operator-=( difference_type step )
-                { 
-                    for ( auto i{0}; i < step; i++ ) m_ptr = m_ptr->prev; 
-                    return *this;
-                }
+            /// it -= 3; // Go back  3 positions within the container.
+            const_iterator operator-=( difference_type step )
+            {
+                for ( auto i{0}; i < step; i++ ) m_ptr = m_ptr->prev;
+                return *this;
+            }
                 
-                /// it->method()
-                pointer operator->( void ) const
-                { 
-                    return *this; 
-                }
+            /// it->method()
+            pointer operator->( void ) const
+            {
+                return *this;
+            }
 
-                /// it1 - it2
-                difference_type operator-( const const_iterator & rhs_ ) const
-                {
-                    if (m_ptr > rhs_.m_ptr) return std::distance(rhs_.m_ptr, m_ptr);
-                    return std::distance(m_ptr, rhs_.m_ptr);
-                }
+            /// it1 - it2
+            difference_type operator-( const const_iterator & rhs_ ) const
+            {
+                if (m_ptr > rhs_.m_ptr) return std::distance(rhs_.m_ptr, m_ptr);
+                return std::distance(m_ptr, rhs_.m_ptr);
+            }
 
                 // We need friendship so the adjacencyList<T> class may access the m_ptr field.
                 friend class adjacencyList<T>;
 
-                /*friend std::ostream & operator<< ( std::ostream & os_, const iterator & s_ )
-                {
-                    os_ << "[@"<< s_.m_ptr << ", val = " << s_.m_ptr->data << "]";
-                    return os_;
-                }*/
+            /*friend std::ostream & operator<< ( std::ostream & os_, const iterator & s_ )
+              {
+              os_ << "[@"<< s_.m_ptr << ", val = " << s_.m_ptr->data << "]";
+              return os_;
+              }*/
         };
 
         //=== Private members.
@@ -272,7 +272,7 @@ namespace sc { // linear sequence. Better name: sequence container (same as STL)
             Vertex * m_head; 
             Vertex * m_tail;
 
-        public:
+    public:
         //=== Public interface
 
         //=== [I] Special members
@@ -330,10 +330,10 @@ namespace sc { // linear sequence. Better name: sequence container (same as STL)
             Vertex * cp = rhs.m_head->next;
 
             while ( cp->next != nullptr )
-            {
-                push_back(cp->data);
-                cp = cp->next;
-            }
+                {
+                    push_back(cp->data);
+                    cp = cp->next;
+                }
             
             return *this;
         }
@@ -438,10 +438,10 @@ namespace sc { // linear sequence. Better name: sequence container (same as STL)
         { 
             clear();
             while (first_ != last_)
-            {
-                push_back(*first_);
-                first_++;
-            }
+                {
+                    push_back(*first_);
+                    first_++;
+                }
         }
         
         void assign( std::initializer_adjacencyList<T> iadjacencyList_ )
@@ -613,15 +613,15 @@ namespace sc { // linear sequence. Better name: sequence container (same as STL)
     inline bool operator==( const sc::adjacencyList<T> & l1_, const sc::adjacencyList<T> & l2_ )
     {
         if(l1_.size() == l2_.size())
-        {
-            auto j = l2_.cbegin();
-            for ( auto i = l1_.cbegin(); i != l1_.cend(); i++ )
             {
-                if ( !(*i == *j) ) return false;
-                j++;
+                auto j = l2_.cbegin();
+                for ( auto i = l1_.cbegin(); i != l1_.cend(); i++ )
+                    {
+                        if ( !(*i == *j) ) return false;
+                        j++;
+                    }
+                return true;
             }
-            return true;
-        }
 
         return false;
     }
