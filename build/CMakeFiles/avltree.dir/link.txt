@@ -1,0 +1,1 @@
+/usr/bin/c++ -fsanitize=address,undefined CMakeFiles/avltree.dir/src/main.cpp.o CMakeFiles/avltree.dir/src/AvlTree.cpp.o CMakeFiles/avltree.dir/src/Util.cpp.o CMakeFiles/avltree.dir/src/Command.cpp.o -o avltree 
