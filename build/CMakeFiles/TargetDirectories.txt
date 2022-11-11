@@ -1,3 +1,0 @@
-/home/tales/Documents/bti/2022.1/EDB2/unity-3/EDBII-Trab3U/build/CMakeFiles/avltree.dir
-/home/tales/Documents/bti/2022.1/EDB2/unity-3/EDBII-Trab3U/build/CMakeFiles/edit_cache.dir
-/home/tales/Documents/bti/2022.1/EDB2/unity-3/EDBII-Trab3U/build/CMakeFiles/rebuild_cache.dir
