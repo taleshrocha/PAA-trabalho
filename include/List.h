@@ -1,5 +1,5 @@
-#ifndef _LIST_H_
-#define _LIST_H_
+#ifndef _adjacencyList_H_
+#define _adjacencyList_H_
 
 #include <iostream>  // cout, endl
 using std::cout;
@@ -15,19 +15,32 @@ using std::copy;
 namespace sc { // linear sequence. Better name: sequence container (same as STL).
 
     template < typename T >
-    class list
+    class adjacencyList
     {
         private:
-        //=== the data node.
-        struct Node
+        //=== the data Vertex.
+        struct Vertex
         {
             T data;
-            Node * next;
-            Node * prev;
+            size_t degree;
+            size_t loss;
 
-            Node( const T &d = T{} , Node * n = nullptr, Node * p = nullptr )
+            Vertex( const T &d = T{} , size_t de = 0, size_t l = 0, Vertex * n = nullptr, Vertex * p = nullptr )
                 : data{ d },
+                    degree{ de }, 
+                    loss{ p },
                     next{ n }, 
+                    prev{ p }
+            { /* empty */ }
+        };
+
+        struct Edge
+        {
+            Vertex * next;
+            Vertex * prev;
+
+            Edge( Vertex * n = nullptr, Vertex * p = nullptr )
+                : next{ n }, 
                     prev{ p }
             { /* empty */ }
         };
@@ -39,7 +52,7 @@ namespace sc { // linear sequence. Better name: sequence container (same as STL)
         {
             //=== Some aliases to help writing a clearer code.
             public:
-                using value_type        = T; //!< The type of the value stored in the list.
+                using value_type        = T; //!< The type of the value stored in the adjacencyList.
                 using pointer           = T *; //!< Pointer to the value.
                 using reference         = T &; //!< reference to the value.
                 using const_reference   = const T &; //!< const reference to the value.
@@ -47,10 +60,10 @@ namespace sc { // linear sequence. Better name: sequence container (same as STL)
                 using iterator_category = std::bidirectional_iterator_tag;
 
             private:
-                Node * m_ptr; //!< The raw pointer.
+                Vertex * m_ptr; //!< The raw pointer.
 
             public:
-                iterator( Node * ptr_ = nullptr ) : m_ptr{ ptr_ } { /* empty */ }
+                iterator( Vertex * ptr_ = nullptr ) : m_ptr{ ptr_ } { /* empty */ }
 
                 ~iterator() = default;
 
@@ -134,8 +147,8 @@ namespace sc { // linear sequence. Better name: sequence container (same as STL)
                     return std::distance(m_ptr, rhs_.m_ptr);
                 }
 
-                // We need friendship so the list<T> class may access the m_ptr field.
-                friend class list<T>;
+                // We need friendship so the adjacencyList<T> class may access the m_ptr field.
+                friend class adjacencyList<T>;
 
                 /*friend std::ostream & operator<< ( std::ostream & os_, const iterator & s_ )
                 {
@@ -148,7 +161,7 @@ namespace sc { // linear sequence. Better name: sequence container (same as STL)
         {
             //=== Some aliases to help writing a clearer code.
             public:
-                using value_type        = T;         //!< The type of the value stored in the list.
+                using value_type        = T;         //!< The type of the value stored in the adjacencyList.
                 using pointer           = T *;       //!< Pointer to the value.
                 using reference         = T &;       //!< reference to the value.
                 using const_reference   = const T &; //!< const reference to the value.
@@ -156,10 +169,10 @@ namespace sc { // linear sequence. Better name: sequence container (same as STL)
                 using iterator_category = std::bidirectional_iterator_tag;
 
             private:
-                Node * m_ptr; //!< The raw pointer.
+                Vertex * m_ptr; //!< The raw pointer.
 
             public:
-                const_iterator( Node * ptr = nullptr ) : m_ptr{ ptr } { /* empty */ }
+                const_iterator( Vertex * ptr = nullptr ) : m_ptr{ ptr } { /* empty */ }
 
                 ~const_iterator() = default;
 
@@ -243,8 +256,8 @@ namespace sc { // linear sequence. Better name: sequence container (same as STL)
                     return std::distance(m_ptr, rhs_.m_ptr);
                 }
 
-                // We need friendship so the list<T> class may access the m_ptr field.
-                friend class list<T>;
+                // We need friendship so the adjacencyList<T> class may access the m_ptr field.
+                friend class adjacencyList<T>;
 
                 /*friend std::ostream & operator<< ( std::ostream & os_, const iterator & s_ )
                 {
@@ -256,65 +269,65 @@ namespace sc { // linear sequence. Better name: sequence container (same as STL)
         //=== Private members.
         private:
             size_t m_size;
-            Node * m_head; 
-            Node * m_tail;
+            Vertex * m_head; 
+            Vertex * m_tail;
 
         public:
         //=== Public interface
 
         //=== [I] Special members
 
-        list() : m_size{ 0 }
+        adjacencyList() : m_size{ 0 }
         { 
-            m_head = new Node();
-            m_tail = new Node();
+            m_head = new Vertex();
+            m_tail = new Vertex();
 
             m_head->next = m_tail;
             m_tail->prev = m_head;
         }
 
-        explicit list( size_t count ) : list()
-        {
-            for ( size_t i = 0; i < count; i++ ) 
-               push_back(T{});  
-        }
+        // explicit adjacencyList( size_t count ) : adjacencyList()
+        // {
+        //     for ( size_t i = 0; i < count; i++ ) 
+        //        push_back(T{});  
+        // }
 
         template< typename InputIt >
-        list( InputIt first, InputIt last ) : list() 
+        adjacencyList( InputIt first, InputIt last ) : adjacencyList() 
         { 
             for ( InputIt i = first; i != last; i++ ) 
                 push_back(*i);
         }
 
-        list( const list & clone_ ) : list() 
-        {
-            Node * cp = clone_.m_head->next;
+        // adjacencyList( const adjacencyList & clone_ ) : adjacencyList() 
+        // {
+        //     Vertex * cp = clone_.m_head->next;
 
-            while ( cp->next != nullptr )
-            {
-                push_back(cp->data);
-                cp = cp->next;
-            }
-        }
+        //     while ( cp->next != nullptr )
+        //     {
+        //         push_back(cp->data);
+        //         cp = cp->next;
+        //     }
+        // }
 
-        list( std::initializer_list<T> ilist_ ) : list()
-        {
-            for( auto i = ilist_.begin(); i != ilist_.end(); i++ )
-                push_back(*i);
-        }
+        // adjacencyList( std::initializer_adjacencyList<T> iadjacencyList_ ) : adjacencyList()
+        // {
+        //     for( auto i = iadjacencyList_.begin(); i != iadjacencyList_.end(); i++ )
+        //         push_back(*i);
+        // }
 
-        ~list() 
+        ~adjacencyList() 
         { 
             clear(); 
             delete m_head;
             delete m_tail;
         }
 
-        list & operator=( const list & rhs ) 
+        adjacencyList & operator=( const adjacencyList & rhs ) 
         { 
             if ( !empty() ) clear();
             
-            Node * cp = rhs.m_head->next;
+            Vertex * cp = rhs.m_head->next;
 
             while ( cp->next != nullptr )
             {
@@ -325,11 +338,11 @@ namespace sc { // linear sequence. Better name: sequence container (same as STL)
             return *this;
         }
 
-        list & operator=( std::initializer_list<T> ilist_ ) 
+        adjacencyList & operator=( std::initializer_adjacencyList<T> iadjacencyList_ ) 
         {
             if ( not empty() ) clear();
 
-            for(auto i = ilist_.begin(); i != ilist_.end(); i++) 
+            for(auto i = iadjacencyList_.begin(); i != iadjacencyList_.end(); i++) 
                 push_back(*i);
 
             return *this;
@@ -431,16 +444,16 @@ namespace sc { // linear sequence. Better name: sequence container (same as STL)
             }
         }
         
-        void assign( std::initializer_list<T> ilist_ )
+        void assign( std::initializer_adjacencyList<T> iadjacencyList_ )
         { 
             clear();
-            for(auto it = ilist_.begin(); it != ilist_.end(); it++) 
+            for(auto it = iadjacencyList_.begin(); it != iadjacencyList_.end(); it++) 
                 push_back(*it);
         }
         
         iterator insert(iterator pos_, const T & value_ )
         { 
-            Node *n = new Node{ value_ };
+            Vertex *n = new Vertex{ value_ };
             n->prev = pos_.m_ptr->prev;
             n->next = pos_.m_ptr;
             pos_.m_ptr->prev->next = n;
@@ -449,27 +462,27 @@ namespace sc { // linear sequence. Better name: sequence container (same as STL)
             return iterator{n};
         }
 
-        template < typename InItr >
-        iterator insert( iterator pos_, InItr first_, InItr last_ )
-        { 
-            while (first_ != last_)
-            {
-                insert(pos_,*first_);
-                first_++;
-            }
-            return pos_;
-        }
+        // template < typename InItr >
+        // iterator insert( iterator pos_, InItr first_, InItr last_ )
+        // { 
+        //     while (first_ != last_)
+        //     {
+        //         insert(pos_,*first_);
+        //         first_++;
+        //     }
+        //     return pos_;
+        // }
         
-        iterator insert( iterator cpos_, std::initializer_list<T> ilist_ ) 
-        { 
-            for(auto it = ilist_.begin(); it != ilist_.end(); it++) 
-                insert(cpos_, *it);
-            return cpos_; 
-        }
+        // iterator insert( iterator cpos_, std::initializer_adjacencyList<T> iadjacencyList_ ) 
+        // { 
+        //     for(auto it = iadjacencyList_.begin(); it != iadjacencyList_.end(); it++) 
+        //         insert(cpos_, *it);
+        //     return cpos_; 
+        // }
 
         iterator erase( iterator it_ )
         {
-            Node * temp = it_.m_ptr->next;
+            Vertex * temp = it_.m_ptr->next;
             it_.m_ptr->prev->next = it_.m_ptr->next;
             it_.m_ptr->next->prev = it_.m_ptr->prev;
             delete it_.m_ptr;
@@ -478,126 +491,126 @@ namespace sc { // linear sequence. Better name: sequence container (same as STL)
             
         }
 
-        iterator erase( iterator start, iterator end )
-        {
-            while(start != end)
-                start = erase(start);
-            return end; 
-        }
+        // iterator erase( iterator start, iterator end )
+        // {
+        //     while(start != end)
+        //         start = erase(start);
+        //     return end; 
+        // }
 
         //=== [V] UTILITY METHODS
-        void merge( list & other ) 
-        { 
-            Node * t_aux = m_head->next;
-            Node * o_aux = other.m_head->next;
-            Node * temp = o_aux; 
-            while(t_aux != nullptr && o_aux->next != nullptr) {   
-                if(o_aux->data < t_aux->data) { 
-                    temp = o_aux;
-                    o_aux = o_aux->next;
-                    temp->next = t_aux;
-                    t_aux->prev->next = temp;
-                    temp->prev = t_aux->prev;
-                    t_aux->prev = temp;
-                    m_size++;
-                    other.m_size--;
-                } else if(t_aux->next == nullptr && o_aux->next != nullptr) 
-                { 
-                    temp = o_aux;
-                    o_aux = o_aux->next;
-                    temp->next = t_aux;
-                    t_aux->prev->next = temp;
-                    temp->prev = t_aux->prev;
-                    t_aux->prev = temp;
-                    m_size++;
-                    other.m_size--;
-                } else {t_aux = t_aux->next; }
-            }
+        // void merge( adjacencyList & other ) 
+        // { 
+        //     Vertex * t_aux = m_head->next;
+        //     Vertex * o_aux = other.m_head->next;
+        //     Vertex * temp = o_aux; 
+        //     while(t_aux != nullptr && o_aux->next != nullptr) {   
+        //         if(o_aux->data < t_aux->data) { 
+        //             temp = o_aux;
+        //             o_aux = o_aux->next;
+        //             temp->next = t_aux;
+        //             t_aux->prev->next = temp;
+        //             temp->prev = t_aux->prev;
+        //             t_aux->prev = temp;
+        //             m_size++;
+        //             other.m_size--;
+        //         } else if(t_aux->next == nullptr && o_aux->next != nullptr) 
+        //         { 
+        //             temp = o_aux;
+        //             o_aux = o_aux->next;
+        //             temp->next = t_aux;
+        //             t_aux->prev->next = temp;
+        //             temp->prev = t_aux->prev;
+        //             t_aux->prev = temp;
+        //             m_size++;
+        //             other.m_size--;
+        //         } else {t_aux = t_aux->next; }
+        //     }
             
-            other.m_head->next = other.m_tail;
-            other.m_tail->prev = other.m_head;
-        }
+        //     other.m_head->next = other.m_tail;
+        //     other.m_tail->prev = other.m_head;
+        // }
 
-        void splice( const_iterator pos, list & other )
-        {
-            m_size += other.size();
+        // void splice( const_iterator pos, adjacencyList & other )
+        // {
+        //     m_size += other.size();
             
-            pos.m_ptr->prev->next = other.m_head->next; 
-            other.m_head->next->prev = pos.m_ptr->prev;
-            other.m_tail->prev->next = pos.m_ptr; 
-            pos.m_ptr->prev = other.m_tail->prev; 
+        //     pos.m_ptr->prev->next = other.m_head->next; 
+        //     other.m_head->next->prev = pos.m_ptr->prev;
+        //     other.m_tail->prev->next = pos.m_ptr; 
+        //     pos.m_ptr->prev = other.m_tail->prev; 
 
-            other.m_size = 0;
-            other.m_head->next = other.m_tail;
-            other.m_tail->prev = other.m_head;     
-        }
+        //     other.m_size = 0;
+        //     other.m_head->next = other.m_tail;
+        //     other.m_tail->prev = other.m_head;     
+        // }
 
-        void reverse( void ) 
-        { 
-            Node * aux;
-            Node * changer = m_head;
-            do {
-                aux = changer->next; 
-                std::swap(changer->next, changer->prev);
-                changer = aux;
-            } while (changer != nullptr);
-            std::swap(m_head,m_tail); 
-        }
+        // void reverse( void ) 
+        // { 
+        //     Vertex * aux;
+        //     Vertex * changer = m_head;
+        //     do {
+        //         aux = changer->next; 
+        //         std::swap(changer->next, changer->prev);
+        //         changer = aux;
+        //     } while (changer != nullptr);
+        //     std::swap(m_head,m_tail); 
+        // }
         
-        void unique( void ) 
-        { 
-            iterator first = begin();
-            iterator last = end();
+        // void unique( void ) 
+        // { 
+        //     iterator first = begin();
+        //     iterator last = end();
             
-            if (begin() == end())
-                return;
+        //     if (begin() == end())
+        //         return;
 
-            iterator next = first;
+        //     iterator next = first;
             
-            while (++next != last){
-                if (*first == *next){
-                   erase(next);
-                }else
-                    first = next;
-                next = first;
-            }
-            return;
-        }
+        //     while (++next != last){
+        //         if (*first == *next){
+        //            erase(next);
+        //         }else
+        //             first = next;
+        //         next = first;
+        //     }
+        //     return;
+        // }
         
-        void sort( void ) 
-        { 
-            if(size() <= 1) { return; }
+        // void sort( void ) 
+        // { 
+        //     if(size() <= 1) { return; }
             
-            iterator it_aux = begin();
-            size_t half_size = size()/2;
-            for(size_t i = 0; i < half_size; i++)
-                it_aux++;
-            list<T> list_aux;
+        //     iterator it_aux = begin();
+        //     size_t half_size = size()/2;
+        //     for(size_t i = 0; i < half_size; i++)
+        //         it_aux++;
+        //     adjacencyList<T> adjacencyList_aux;
             
-            list_aux.m_tail->prev = m_tail->prev;
-            m_tail->prev->next =  list_aux.m_tail;
+        //     adjacencyList_aux.m_tail->prev = m_tail->prev;
+        //     m_tail->prev->next =  adjacencyList_aux.m_tail;
             
-            m_tail->prev = it_aux.m_ptr->prev;
-            it_aux.m_ptr->prev->next = m_tail;
-            it_aux.m_ptr->prev = nullptr;
+        //     m_tail->prev = it_aux.m_ptr->prev;
+        //     it_aux.m_ptr->prev->next = m_tail;
+        //     it_aux.m_ptr->prev = nullptr;
             
-            list_aux.m_head->next = it_aux.m_ptr;
-            it_aux.m_ptr->prev = list_aux.m_head;
+        //     adjacencyList_aux.m_head->next = it_aux.m_ptr;
+        //     it_aux.m_ptr->prev = adjacencyList_aux.m_head;
             
-            list_aux.m_size = size() - half_size;
-            m_size = half_size; 
+        //     adjacencyList_aux.m_size = size() - half_size;
+        //     m_size = half_size; 
             
-            sort();
-            list_aux.sort();
-            merge(list_aux);  
+        //     sort();
+        //     adjacencyList_aux.sort();
+        //     merge(adjacencyList_aux);  
 
-        }
+        // }
     };
 
     //=== [VI] OPETARORS
 
     template < typename T >
-    inline bool operator==( const sc::list<T> & l1_, const sc::list<T> & l2_ )
+    inline bool operator==( const sc::adjacencyList<T> & l1_, const sc::adjacencyList<T> & l2_ )
     {
         if(l1_.size() == l2_.size())
         {
@@ -614,7 +627,7 @@ namespace sc { // linear sequence. Better name: sequence container (same as STL)
     }
 
     template < typename T >
-    inline bool operator!=( const sc::list<T> & l1_, const sc::list<T> & l2_ )
+    inline bool operator!=( const sc::adjacencyList<T> & l1_, const sc::adjacencyList<T> & l2_ )
     {
         return !(l1_ == l2_);
     }
