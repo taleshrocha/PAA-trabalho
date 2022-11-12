@@ -1,4 +1,4 @@
-//#include "List.h"
+//#include "Graph.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -41,13 +41,9 @@ int main ( int argc, char* argv[] )
   vector<Vertex> C;
 
   for (Edge e : G.edges()) {
-    if (!isCovered(e)) {
+    if (!isCovered(e, C)) {
       // TODO adicione o vértice de e com o maior grau em C.
     }
-  }
-
-  for (Vertex v : C) {
-    v.loss = 0;
   }
 
   for (Edge e : G.edges()) {
@@ -64,7 +60,7 @@ int main ( int argc, char* argv[] )
       // C := C \ {v}
       remove(C.begin(), C.end(), v);
 
-      // TODO atualize loss dos vértices em N(v);
+      // TODO atualize loss dos vértices em Neighboors(v);
     }
   }
   */
