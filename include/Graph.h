@@ -22,33 +22,48 @@ namespace sc {
     class Graph
     {
     private:
+
         struct Node
         {
             T data;
             bool isCovered;
             Node * next;
 
-            Node( const T &d = T{} , bool i = false, Node * n = nullptr )
+            Node( T d = T{}, Node * n = nullptr, bool i = false )
                 : data{ d },
                   isCovered{ i },
                   next{ n }
             { /* empty */ }
         };
 
-        std::vector<std::optional<Node>> adjacencyList;
-        std::vector<size_t> loss;
+        struct Vertex
+        {
+            T data;
+            size_t degree;
+            size_t loss;
+            Node * next;
+
+            Vertex( T d = T{}, Node * n = nullptr, size_t de = 0, size_t l = 0 )
+                : data{ d },
+                  degree{ de },
+                  loss{ l },
+                  next{ n }
+            { /* empty */ }
+        };
+
+        std::vector<Vertex*> adjacencyList;
+
+        using  iterator = typename std::vector<sc::Graph<T>::Vertex*>::iterator;
 
     public:
+
+        std::vector<Vertex*> getAdjacencyList () {
+            return adjacencyList;
+        }
+    
         Graph()
         { 
-            adjacencyList = std::vector{}
-            loss = std::vector()
-        }
-
-        Graph( size_t size ) : Graph()
-        { 
-            adjacencyList = std::vector(size, std::optional<Node>{})
-            loss = std::vector(size, 0)
+            /* empty */
         }
 
         ~Graph() 
@@ -77,73 +92,46 @@ namespace sc {
         { 
             return adjacencyList.size(); 
         }
-        
+
         void addEdge( std::pair<T,T> values )
         { 
-            Node *n1 = new Node{ values.first };
-            Node *n2 = new Node{ values.second };
-
-            if (!adjacencyList[values.first]) 
-                adjacencyList[values.first] = n2
-            else {
-                aux = adjacencyList[values.first]->next;
-                while(aux != nullptr)
-                    aux = aux->next;
-                aux = n2
-            }
-            
-            if (!adjacencyList[values.second]) 
-                adjacencyList[values.second] = n1
-            else {
-                aux = adjacencyList[values.second]->next;
-                while(aux != nullptr)
-                    aux = aux->next;
-                aux = n1
-            }
+            addEdgeAux( values );
+            addEdgeAux( std::make_pair(values.second, values.first) );
         }
-
-        void updateLoss( size_t i )
-        { 
-            loss[i]++;
-        }
-
-        // void addEdge( std::pair<T,T> values )
-        // { 
-        //     Node *n1 = new Node{ values.first };
-        //     Node *n2 = new Node{ values.second };
-
-        //     auto it1 = begin() + values.second;
-        //     auto it2 = begin() + values.first;
-
-        //     if()
-        // }
-
         
-    };
-
-    //=== [VI] OPETARORS
-
-    template < typename T >
-    inline bool operator==( const sc::Graph<T> & l1_, const sc::Graph<T> & l2_ )
-    {
-        if(l1_.size() == l2_.size())
-            {
-                auto j = l2_.cbegin();
-                for ( auto i = l1_.cbegin(); i != l1_.cend(); i++ )
-                    {
-                        if ( !(*i == *j) ) return false;
-                        j++;
-                    }
-                return true;
+        iterator findVertex( T value )
+        {   
+            auto it = begin();
+            while( it != end() ) {
+                if ( (*it)->data == value ) {
+                    return it;
+                }
+                it++;
             }
+            return it;
+        }
 
-        return false;
-    }
+    private:
+        
+        void addEdgeAux( std::pair<T,T> values )
+        { 
+            Node *n = new Node( values.second );
 
-    template < typename T >
-    inline bool operator!=( const sc::Graph<T> & l1_, const sc::Graph<T> & l2_ )
-    {
-        return !(l1_ == l2_);
-    }
+            if ( findVertex(values.first) != end() ) {
+                auto temp = findVertex(values.first);
+                (*temp)->degree += 1;
+                auto aux = (*temp)->next;
+                cout << (*temp)->data;
+                while(aux != nullptr) {
+                    cout << " --> " << (*temp)->data;
+                    cout << aux->data << endl;
+                    aux = aux->next;
+                }
+                cout << endl;
+                aux = n;
+            }  else 
+                adjacencyList.push_back( new Vertex( values.first, n, 1 ) );
+        }  
+    };
 }
 #endif

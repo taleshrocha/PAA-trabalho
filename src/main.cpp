@@ -1,4 +1,4 @@
-//#include "Graph.h"
+#include "../include/Graph.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -12,58 +12,97 @@ using std::vector;
 
 int main ( int argc, char* argv[] )
 {
-  if (argc < 2) {
-    cout << "You must give the test case file!" << endl;
-    return 1;
-  }
+  sc::Graph<int> G;
 
-  std::ifstream infile(argv[1]);
-  std::string line;
+  std::pair<int,int> teste = std::make_pair(95,82);
 
-  int a, b;
-  char c;
-  // TODO create an graph G using the data structure.
+  G.addEdge(teste);
+  G.addEdge(std::make_pair(95,32));
 
-  while ( std::getline(infile, line) ) {
+  std::cout << G.size() << endl;
 
-    std::istringstream iss(line);
+  //int i =0;
 
-    if (!line.empty()) {
-      iss >> a >> c >> b;
-      // TODO pass the values to the data structure.
-      cout << a << " " << b << endl;
+  // if(G.findVertex(teste.first) != G.end()) {
+  //   auto it = G.findVertex(teste.first);
+  //     cout << i << endl;
+  //     cout << (*it)->data << endl;
+  //     cout << (*it)->degree << endl;
+  //     i++;
+  //     auto aux = (*it)->next;
+  //     while( aux != nullptr ) {
+  //         cout << i << endl;
+  //         cout << (*aux).data << endl;
+  //         i++;
+  //         aux = aux->next;
+  //     }
+  // } else
+  //   cout << "não foi dessa vez" << endl;
+
+  auto L = G.getAdjacencyList();
+
+  for (auto i = 0; i<L.size(); i++){
+    cout << L[i]->data << " " << L[i]->degree << endl;
+    auto aux = L[i]->next;
+    while( aux != nullptr ) {
+        cout << (*aux).data << endl;
+        aux = aux->next;
     }
+    cout << "(*aux).data" << endl;
   }
 
-  // EdgeGreedyVC
+  // if (argc < 2) {
+  //   cout << "You must give the test case file!" << endl;
+  //   return 1;
+  // }
 
-  /*
-  vector<Vertex> C;
+  // std::ifstream infile(argv[1]);
+  // std::string line;
 
-  for (Edge e : G.edges()) {
-    if (!isCovered(e, C)) {
-      // TODO adicione o vértice de e com o maior grau em C.
-    }
-  }
+  // int a, b;
+  // char c;
+  // // TODO create an graph G using the data structure.
 
-  for (Edge e : G.edges()) {
-    // se apenas uma ponta de e pertence a C.
-    if (isEndPointIn(e, C)) {
-      Vertex endPoint = getEndPoint(e, C);
-      endPoint.loss += 1;
-    }
-  }
+  // while ( std::getline(infile, line) ) {
 
-  for (Vertex v : C) {
+  //   std::istringstream iss(line);
 
-    if (v.loss == 0) {
-      // C := C \ {v}
-      remove(C.begin(), C.end(), v);
+  //   if (!line.empty()) {
+  //     iss >> a >> c >> b;
+  //     // TODO pass the values to the data structure.
+  //     cout << a << " " << b << endl;
+  //   }
+  // }
 
-      // TODO atualize loss dos vértices em Neighboors(v);
-    }
-  }
-  */
+  // // EdgeGreedyVC
+
+  // /*
+  // vector<Vertex> C;
+
+  // for (Edge e : G.edges()) {
+  //   if (!isCovered(e, C)) {
+  //     // TODO adicione o vértice de e com o maior grau em C.
+  //   }
+  // }
+
+  // for (Edge e : G.edges()) {
+  //   // se apenas uma ponta de e pertence a C.
+  //   if (isEndPointIn(e, C)) {
+  //     Vertex endPoint = getEndPoint(e, C);
+  //     endPoint.loss += 1;
+  //   }
+  // }
+
+  // for (Vertex v : C) {
+
+  //   if (v.loss == 0) {
+  //     // C := C \ {v}
+  //     remove(C.begin(), C.end(), v);
+
+  //     // TODO atualize loss dos vértices em Neighboors(v);
+  //   }
+  // }
+  // */
 
   return 0;
 }
