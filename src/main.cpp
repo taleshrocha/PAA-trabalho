@@ -42,13 +42,13 @@ int main ( int argc, char* argv[] )
   auto L = G.getAdjacencyList();
 
   for (auto i = 0; i<L.size(); i++){
-    cout << L[i]->data << " " << L[i]->degree << endl;
+    cout << L[i]->data << " " << L[i]->degree << " " << L[i]->next << endl;
     auto aux = L[i]->next;
     while( aux != nullptr ) {
-        cout << (*aux).data << endl;
+        cout << aux->data << " " << aux->next << endl;
         aux = aux->next;
     }
-    cout << "(*aux).data" << endl;
+    cout << "------------------------------" << endl;
   }
 
   // if (argc < 2) {

@@ -1,9 +1,7 @@
 #ifndef _Graph_H_
 #define _Graph_H_
 
-#include <iostream>  // cout, endl
-using std::cout;
-using std::endl;
+#include <iostream>
 
 #include <iterator>  // bidirectional_iterator_tag
 #include <cassert>   // assert()
@@ -121,14 +119,10 @@ namespace sc {
                 auto temp = findVertex(values.first);
                 (*temp)->degree += 1;
                 auto aux = (*temp)->next;
-                cout << (*temp)->data;
-                while(aux != nullptr) {
-                    cout << " --> " << (*temp)->data;
-                    cout << aux->data << endl;
+                while(aux->next != nullptr) {
                     aux = aux->next;
                 }
-                cout << endl;
-                aux = n;
+                aux->next = n;
             }  else 
                 adjacencyList.push_back( new Vertex( values.first, n, 1 ) );
         }  
