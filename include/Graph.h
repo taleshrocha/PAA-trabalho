@@ -159,7 +159,7 @@ namespace sc {
         void coverEdgeAux( std::pair<T,T> values )
         {
             auto aux = (*findVertex(values.first))->next;
-            while(aux->next != nullptr) {
+            while(aux != nullptr) {
                 if (aux->data == values.second) {
                     aux->isCovered = true;
                     return;
@@ -171,7 +171,7 @@ namespace sc {
         void seeEdgeAux( std::pair<T,T> values )
         {
             auto aux = (*findVertex(values.first))->next;
-            while(aux->next != nullptr) {
+            while(aux != nullptr) {
                 if (aux->data == values.second) {
                     aux->alreadySeen = true;
                     return;
