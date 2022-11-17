@@ -19,15 +19,17 @@ namespace sc {
     class Graph
     {
     public:
-        struct Node
+        struct Edge
         {
             T data;
             bool isCovered;
-            Node * next;
+            bool alreadySeen;
+            Edge * next;
 
-            Node( T d = T{}, Node * n = nullptr, bool i = false )
+            Edge( T d = T{}, Edge * n = nullptr, bool i = false, bool al = false )
                 : data{ d },
                   isCovered{ i },
+                  alreadySeen{ al },
                   next{ n }
             { /* empty */ }
         };
@@ -37,9 +39,9 @@ namespace sc {
             T data;
             size_t degree;
             size_t loss;
-            Node * next;
+            Edge * next;
 
-            Vertex( T d = T{}, Node * n = nullptr, size_t de = 0, size_t l = 0 )
+            Vertex( T d = T{}, Edge * n = nullptr, size_t de = 0, size_t l = 0 )
                 : data{ d },
                   degree{ de },
                   loss{ l },
@@ -132,10 +134,16 @@ namespace sc {
             coverEdgeAux( std::make_pair(values.second, values.first) );
         }
 
+        void seeEdge( std::pair<T,T> values )
+        {
+            seeEdgeAux( values );
+            seeEdgeAux( std::make_pair(values.second, values.first) );
+        }
+
     private:
         void addEdgeAux( std::pair<T,T> values )
         { 
-            Node *n = new Node( values.second );
+            Edge *n = new Edge( values.second );
 
             if ( findVertex(values.first) != end() ) {
                 auto temp = findVertex(values.first);
@@ -154,6 +162,18 @@ namespace sc {
             while(aux->next != nullptr) {
                 if (aux->data == values.second) {
                     aux->isCovered = true;
+                    return;
+                }
+                aux = aux->next;
+            }
+        }
+
+        void seeEdgeAux( std::pair<T,T> values )
+        {
+            auto aux = (*findVertex(values.first))->next;
+            while(aux->next != nullptr) {
+                if (aux->data == values.second) {
+                    aux->alreadySeen = true;
                     return;
                 }
                 aux = aux->next;

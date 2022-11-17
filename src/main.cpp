@@ -11,7 +11,7 @@ using std::endl;
 using std::vector;
 
 
-std::set<int> edgeGreedyVC (sc::Graph<int> G) {
+std::set<int> edgeGreedyVC ( sc::Graph<int> G ) {
   std::set<int> C;
 
   auto it = G.begin();
@@ -34,22 +34,32 @@ std::set<int> edgeGreedyVC (sc::Graph<int> G) {
   while ( itt != G.end() ) {
     auto temp = (*itt)->next;
     while( temp != nullptr ) {
-      if ( C.find( (*itt)->data ) != C.end() && C.find( (*temp).data ) == C.end() )
-        G.updateLoss( (*itt)->data );
-      else if ( C.find( (*itt)->data ) == C.end() && C.find( (*temp).data ) != C.end() )
-        G.updateLoss( (*temp).data );
+      if ( !(*temp).alreadySeen ) {
+        if ( C.find( (*itt)->data ) != C.end() && C.find( (*temp).data ) == C.end() )
+          G.updateLoss( (*itt)->data );
+        else if ( C.find( (*itt)->data ) == C.end() && C.find( (*temp).data ) != C.end() )
+          G.updateLoss( (*temp).data );
+        G.seeEdge( std::make_pair( (*itt)->data, (*temp).data ) );
+      }
       temp = temp->next;
     }
     itt++;
   }
+
+  auto itr2 = C.begin();
+  while ( itr2 != C.end() ) {
+    cout << *itr2 << " " << G.vertexLoss(*itr2) << endl;
+      itr2++;
+  }
   
   auto itr = C.begin();
   while ( itr != C.end() ) {
+    cout << "fora " << *itr << endl;
     if ( G.vertexLoss( *itr ) == 0 ) {
+      cout <<  "dentro " << *itr << endl;
       G.updateLossNeighbors( *itr );
-      C.erase(*itr);
+      //C.erase(itr);
     }
-    else
       itr++;
   }
   cout << "aqui3" << endl;
@@ -89,11 +99,11 @@ int main ( int argc, char* argv[] )
     std::set<int> C = edgeGreedyVC( G );
     std::cout << C.size() << endl;
 
-    // auto itr = C.begin();
-    // while ( itr != C.end() ) {
-    //   cout << *itr << endl;
-    //     itr++;
-    // }
+    auto itr = C.begin();
+    while ( itr != C.end() ) {
+      cout << *itr << " " << G.vertexLoss(*itr) << endl;
+        itr++;
+    }
     return 0;
   }
 }
