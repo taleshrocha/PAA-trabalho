@@ -12,15 +12,13 @@ using std::copy;
 #include <vector>
 
 #include <utility>
-#include <optional>
 
 namespace sc {
 
     template < typename T >
     class Graph
     {
-    private:
-
+    public:
         struct Node
         {
             T data;
@@ -48,17 +46,12 @@ namespace sc {
                   next{ n }
             { /* empty */ }
         };
-
+    private:
         std::vector<Vertex*> adjacencyList;
 
         using  iterator = typename std::vector<sc::Graph<T>::Vertex*>::iterator;
 
     public:
-
-        std::vector<Vertex*> getAdjacencyList () {
-            return adjacencyList;
-        }
-    
         Graph()
         { 
             /* empty */
@@ -109,23 +102,63 @@ namespace sc {
             return it;
         }
 
+        size_t vertexDegree( T value )
+        {
+            return (*findVertex(value))->degree;
+        }
+
+        size_t vertexLoss( T value )
+        {
+            return (*findVertex(value))->loss;
+        }
+
+        void updateLoss( T value )
+        {
+            (*findVertex(value))->loss++;
+        }
+
+        void updateLossNeighbors( T value )
+        {
+            auto temp = (*findVertex( value ))->next;
+            while(temp != nullptr) {
+                updateLoss( (*temp).data );
+                temp = temp->next;
+            }
+        }
+
+        void coverEdge( std::pair<T,T> values )
+        {
+            coverEdgeAux( values );
+            coverEdgeAux( std::make_pair(values.second, values.first) );
+        }
+
     private:
-        
         void addEdgeAux( std::pair<T,T> values )
         { 
             Node *n = new Node( values.second );
 
             if ( findVertex(values.first) != end() ) {
                 auto temp = findVertex(values.first);
-                (*temp)->degree += 1;
+                (*temp)->degree++;
                 auto aux = (*temp)->next;
-                while(aux->next != nullptr) {
+                while(aux->next != nullptr)
                     aux = aux->next;
-                }
                 aux->next = n;
             }  else 
                 adjacencyList.push_back( new Vertex( values.first, n, 1 ) );
-        }  
+        }
+
+        void coverEdgeAux( std::pair<T,T> values )
+        {
+            auto aux = (*findVertex(values.first))->next;
+            while(aux->next != nullptr) {
+                if (aux->data == values.second) {
+                    aux->isCovered = true;
+                    return;
+                }
+                aux = aux->next;
+            }
+        }
     };
 }
 #endif

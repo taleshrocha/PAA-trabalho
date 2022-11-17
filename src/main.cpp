@@ -4,105 +4,96 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <set>
 
 using std::cout;
 using std::endl;
 using std::vector;
 
 
+std::set<int> edgeGreedyVC (sc::Graph<int> G) {
+  std::set<int> C;
+
+  auto it = G.begin();
+  while ( it != G.end() ) {
+    auto temp = (*it)->next;
+    while( temp != nullptr ) {
+      if ( !(*temp).isCovered ) {
+        if ( G.vertexDegree((*it)->data) > G.vertexDegree((*temp).data) )
+          C.insert( (*it)->data );
+        else
+          C.insert( (*temp).data );
+        G.coverEdge( std::make_pair( (*it)->data, (*temp).data ) );
+      }
+      temp = temp->next;
+    }
+    it++;
+  }
+  
+  auto itt = G.begin();
+  while ( itt != G.end() ) {
+    auto temp = (*itt)->next;
+    while( temp != nullptr ) {
+      if ( C.find( (*itt)->data ) != C.end() && C.find( (*temp).data ) == C.end() )
+        G.updateLoss( (*itt)->data );
+      else if ( C.find( (*itt)->data ) == C.end() && C.find( (*temp).data ) != C.end() )
+        G.updateLoss( (*temp).data );
+      temp = temp->next;
+    }
+    itt++;
+  }
+  
+  auto itr = C.begin();
+  while ( itr != C.end() ) {
+    if ( G.vertexLoss( *itr ) == 0 ) {
+      G.updateLossNeighbors( *itr );
+      C.erase(*itr);
+    }
+    else
+      itr++;
+  }
+  cout << "aqui3" << endl;
+  return C;
+}
+
 int main ( int argc, char* argv[] )
 {
-  sc::Graph<int> G;
-
-  std::pair<int,int> teste = std::make_pair(95,82);
-
-  G.addEdge(teste);
-  G.addEdge(std::make_pair(95,32));
-
-  std::cout << G.size() << endl;
-
-  //int i =0;
-
-  // if(G.findVertex(teste.first) != G.end()) {
-  //   auto it = G.findVertex(teste.first);
-  //     cout << i << endl;
-  //     cout << (*it)->data << endl;
-  //     cout << (*it)->degree << endl;
-  //     i++;
-  //     auto aux = (*it)->next;
-  //     while( aux != nullptr ) {
-  //         cout << i << endl;
-  //         cout << (*aux).data << endl;
-  //         i++;
-  //         aux = aux->next;
-  //     }
-  // } else
-  //   cout << "não foi dessa vez" << endl;
-
-  auto L = G.getAdjacencyList();
-
-  for (auto i = 0; i<L.size(); i++){
-    cout << L[i]->data << " " << L[i]->degree << " " << L[i]->next << endl;
-    auto aux = L[i]->next;
-    while( aux != nullptr ) {
-        cout << aux->data << " " << aux->next << endl;
-        aux = aux->next;
-    }
-    cout << "------------------------------" << endl;
+  if (argc < 2) {
+    cout << "Error: Test case file not informed!" << endl;
+    return 1;
   }
 
-  // if (argc < 2) {
-  //   cout << "You must give the test case file!" << endl;
-  //   return 1;
-  // }
+  std::ifstream infile(argv[1]);
 
-  // std::ifstream infile(argv[1]);
-  // std::string line;
+  if ( !infile ) {
+    cout << "Error: Could not open file '" << argv[1] << "' or it doesn't exist!" << endl;
+    return 1;
+  } else {
 
-  // int a, b;
-  // char c;
-  // // TODO create an graph G using the data structure.
+    sc::Graph<int> G;
 
-  // while ( std::getline(infile, line) ) {
+    std::string line;
+    int a, b;
+    char c;
 
-  //   std::istringstream iss(line);
+    while ( std::getline(infile, line) ) {
 
-  //   if (!line.empty()) {
-  //     iss >> a >> c >> b;
-  //     // TODO pass the values to the data structure.
-  //     cout << a << " " << b << endl;
-  //   }
-  // }
+      std::istringstream iss(line);
 
-  // // EdgeGreedyVC
+      if (!line.empty()) {
+        iss >> a >> c >> b;
+        G.addEdge(std::make_pair(a, b));
+      }
+    }
+    std::cout << G.size() << endl;
+    std::set<int> C = edgeGreedyVC( G );
+    std::cout << C.size() << endl;
 
-  // /*
-  // vector<Vertex> C;
-
-  // for (Edge e : G.edges()) {
-  //   if (!isCovered(e, C)) {
-  //     // TODO adicione o vértice de e com o maior grau em C.
-  //   }
-  // }
-
-  // for (Edge e : G.edges()) {
-  //   // se apenas uma ponta de e pertence a C.
-  //   if (isEndPointIn(e, C)) {
-  //     Vertex endPoint = getEndPoint(e, C);
-  //     endPoint.loss += 1;
-  //   }
-  // }
-
-  // for (Vertex v : C) {
-
-  //   if (v.loss == 0) {
-  //     // C := C \ {v}
-  //     remove(C.begin(), C.end(), v);
-
-  //     // TODO atualize loss dos vértices em Neighboors(v);
-  //   }
-  // }
-  // */
-
-  return 0;
+    // auto itr = C.begin();
+    // while ( itr != C.end() ) {
+    //   cout << *itr << endl;
+    //     itr++;
+    // }
+    return 0;
+  }
 }
