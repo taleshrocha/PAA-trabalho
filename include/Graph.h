@@ -70,20 +70,21 @@ public:
   ~Graph()
   {
     for ( auto vertex : adjacencyList ) {
-      removeAllEdges(vertex->next, vertex->data);
-      cout << "DELETED VERTEX: " << vertex->data << endl;
+      //cout << "VERTEX: " << vertex->data << endl;
+      removeAllEdges(vertex->next);
+      //cout << "DELETED VERTEX: " << vertex->data << endl;
       delete vertex;
     }
   }
 
- void removeAllEdges(Edge* edge, int data)
+ void removeAllEdges(Edge* edge)
  {
    if (edge != nullptr ) {
      if ( edge->next != nullptr )
      {
-       removeAllEdges(edge->next, data);
+       removeAllEdges(edge->next);
      }
-     cout << "FROM VERTEX: " << data << " -- " << "DELETED EDGE: " << edge->data << endl;
+     //cout << "DELETED EDGE: " << edge->data << endl;
      delete edge;
    }
  }
