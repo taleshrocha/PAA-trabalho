@@ -13,13 +13,13 @@ using std::vector;
 using std::make_pair;
 using sc::Graph;
 
-set<int> edgeGreedyVC ( Graph<int> G )
+set<int> edgeGreedyVC ( Graph<int> *G )
 {
 
   set<int> C;
 
   // For each edge in G.
-  for (auto vertex = G.begin(); vertex != G.end(); ++vertex)
+  for (auto vertex = G->begin(); vertex != G->end(); ++vertex)
   {
     for (auto vertexNext = (*vertex)->next; vertexNext != nullptr; vertexNext = vertexNext->next)
     {
@@ -29,19 +29,19 @@ set<int> edgeGreedyVC ( Graph<int> G )
       {
 
         // Add the endpoint of the edge (vertex) with the higher degree into C.
-        if ( G.vertexDegree ( (*vertex)->data ) > G.vertexDegree ( vertexNext->data ) )
+        if ( G->vertexDegree ( (*vertex)->data ) > G->vertexDegree ( vertexNext->data ) )
           C.insert ( (*vertex)->data );
 
         else
           C.insert ( vertexNext->data );
 
-        G.coverEdge ( make_pair ( (*vertex)->data, vertexNext->data ));
+        G->coverEdge ( make_pair ( (*vertex)->data, vertexNext->data ));
       }
     }
   }
 
   // For each edge in G.
-  for (auto vertex = G.begin(); vertex != G.end(); ++vertex)
+  for (auto vertex = G->begin(); vertex != G->end(); ++vertex)
   {
     for (auto vertexNext = (*vertex)->next; vertexNext != nullptr; vertexNext = vertexNext->next)
     {
@@ -50,13 +50,13 @@ set<int> edgeGreedyVC ( Graph<int> G )
 
         // If only one vertex of the edge belongs to C.
         if ( C.find ( ( *vertex )->data ) != C.end() && C.find ( vertexNext->data ) == C.end() )
-          G.updateLoss ( ( *vertex )->data );
+          G->updateLoss ( ( *vertex )->data );
 
         else if ( C.find ( ( *vertex )->data ) == C.end() && C.find ( vertexNext->data ) != C.end() )
-          G.updateLoss ( vertexNext->data );
+          G->updateLoss ( vertexNext->data );
 
         // To avoid counting the same edge two times. And avoid a vertex to update loss more than one time.
-        G.seeEdge ( make_pair ( ( *vertex )->data, vertexNext->data ) );
+        G->seeEdge ( make_pair ( ( *vertex )->data, vertexNext->data ) );
       }
 
     }
@@ -66,9 +66,9 @@ set<int> edgeGreedyVC ( Graph<int> G )
   auto vertex = C.begin();
   while ( vertex != C.end() )
   {
-    if ( G.vertexLoss ( *vertex ) == 0 )
+    if ( G->vertexLoss ( *vertex ) == 0 )
     {
-      G.updateLossNeighbors ( *vertex );
+      G->updateLossNeighbors ( *vertex );
       vertex = C.erase ( vertex );
     }
     else
@@ -96,7 +96,8 @@ int main ( int argc, char* argv[] )
   else
   {
 
-    Graph<int> G;
+    //Graph<int> G;
+    Graph<int> *G = new Graph<int>;
 
     std::string line;
     int a, b;
@@ -112,20 +113,24 @@ int main ( int argc, char* argv[] )
       {
         iss >> a >> c >> b;
         // Populates the graph.
-        G.addEdge ( make_pair ( a, b ) );
+        G->addEdge ( make_pair ( a, b ) );
       }
     }
 
-    cout << G.size() << endl;
+    //cout << G.size() << endl;
+    cout << G->size() << endl;
     set<int> C = edgeGreedyVC ( G );
     cout << C.size() << endl;
+
 
     auto itr = C.begin();
     while ( itr != C.end() )
     {
-      cout << *itr << " " << G.vertexLoss ( *itr ) << endl;
+      cout << *itr << " " << G->vertexLoss ( *itr ) << endl;
       itr++;
     }
+
+    delete G;
 
     return 0;
   }

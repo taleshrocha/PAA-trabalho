@@ -12,6 +12,8 @@
 
 using std::copy;
 using std::vector;
+using std::cout;
+using std::endl;
 
 namespace sc
 {
@@ -67,10 +69,25 @@ public:
 
   ~Graph()
   {
-    // clear();
-    // delete m_head;
-    // delete m_tail;
+    for ( auto vertex : adjacencyList ) {
+      removeAllEdges(vertex->next, vertex->data);
+      cout << "DELETED VERTEX: " << vertex->data << endl;
+      delete vertex;
+    }
   }
+
+ void removeAllEdges(Edge* edge, int data)
+ {
+   if (edge != nullptr ) {
+     if ( edge->next != nullptr )
+     {
+       removeAllEdges(edge->next, data);
+     }
+     cout << "FROM VERTEX: " << data << " -- " << "DELETED EDGE: " << edge->data << endl;
+     delete edge;
+   }
+ }
+
 
   iterator begin()
   {
