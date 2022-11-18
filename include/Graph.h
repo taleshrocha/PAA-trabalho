@@ -44,13 +44,15 @@ public:
     T data;
     size_t degree;
     size_t loss;
+    size_t gain;
     Edge* next;
 
-    Vertex ( T d = T{}, Edge* n = nullptr, size_t de = 0, size_t l = 0 )
+    Vertex ( T d = T{}, Edge* edge = nullptr, size_t de = 0, size_t l = 0, size_t g = 0)
       : data{ d },
         degree{ de },
         loss{ l },
-        next{ n }
+        gain{ g },
+        next{ edge }
     { /* empty */ }
   };
 
