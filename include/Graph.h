@@ -9,7 +9,9 @@
 #include <type_traits>
 #include <vector>
 #include <utility>
+#include <set>
 
+using std::set;
 using std::copy;
 using std::vector;
 using std::cout;
@@ -167,6 +169,45 @@ public:
   {
     seeEdgeAux ( values );
     seeEdgeAux ( std::make_pair ( values.second, values.first ) );
+  }
+
+  bool isVertexCover(set<int> C) {
+    iterator vertex;
+
+    for (auto vertexValue : C) {
+      vertex = findVertex(vertexValue);
+
+      if (vertex != end()) {
+        if((*vertex)->gain != 0) {
+          return false;
+        }
+      }
+      else {
+        cout << "ERROR: Vertex not found in isVertexCover function" << endl;
+        return false;
+      }
+    }
+    return true;
+  }
+
+  iterator getMinimumLossVertex (set<int> C)
+  {
+    if (C.empty())
+      return this->end();
+
+    iterator minLossVertex = findVertex(*(C.begin()));
+    iterator vertex = findVertex(*(C.begin()));
+    size_t minLoss = (*vertex)->loss;
+
+    for (auto vertexValue : C) {
+      vertex = findVertex(vertexValue);
+
+      if ((*vertex)->loss <= minLoss) {
+        minLossVertex = vertex;
+      }
+    }
+
+    return minLossVertex;
   }
 
 private:
