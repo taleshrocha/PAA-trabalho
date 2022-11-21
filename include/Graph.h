@@ -149,13 +149,24 @@ public:
     ( *findVertex ( value ) )->loss++;
   }
 
+  void updateGain ( T value )
+  {
+    ( *findVertex ( value ) )->gain++;
+  }
+
   void updateLossNeighbors ( T value )
   {
-    auto temp = ( *findVertex ( value ) )->next;
-    while ( temp != nullptr )
-    {
-      updateLoss ( ( *temp ).data );
-      temp = temp->next;
+    auto vertex = ( *findVertex ( value ) )->next;
+    for (auto edge : *vertex) {
+      updateLoss ( ( *edge ).data );
+    }
+  }
+
+  void updateGainNeighbors ( T value )
+  {
+    auto vertex = ( *findVertex ( value ) )->next;
+    for (auto edge : *vertex) {
+      updateGain ( ( *edge ).data );
     }
   }
 
@@ -171,6 +182,8 @@ public:
     seeEdgeAux ( std::make_pair ( values.second, values.first ) );
   }
 
+  // TODO: it is wrong
+  // Look everybody in G and see if somebody has gain bigger than 0.
   bool isVertexCover(set<int> C) {
     iterator vertex;
 

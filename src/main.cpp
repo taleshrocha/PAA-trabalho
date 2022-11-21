@@ -97,6 +97,7 @@ set<int> fastVC ( Graph<int> *G, set<int> C)
     // TODO: Check for errors
     auto minLossVertex = G->getMinimumLossVertex(C);
 
+
     cout << "minLossVertex: " << (*minLossVertex)->data << endl;
 
     C.erase((*minLossVertex)->data);
@@ -105,10 +106,12 @@ set<int> fastVC ( Graph<int> *G, set<int> C)
       cout << vertex << "\t" << G->vertexLoss ( vertex ) << "\t" << G->vertexDegree( vertex ) << endl;
   }
 
-  //auto removeVertex = G->chooseRemoveVertex(C);
-  //C.erase(removeVertex);
-  //G->updateLossNeighbors( removeVertex );
-  //G->updateGainNeighbors( removeVertex );
+  // Choose remove vertex.
+  auto removeVertex = G->getMinimumLossVertex(C);
+
+  C.erase((*removeVertex)->data);
+  G->updateLossNeighbors( (*removeVertex)->data );
+  G->updateGainNeighbors( (*removeVertex)->data );
 
   //auto randomUncoveredEdge = G->getRandomUncoveredEdge(C);
   //auto vertex = G->greaterGainEndpoint(randomUncoveredEdge); // TODO: Breaks ties in favor of the older one. How to implement?
