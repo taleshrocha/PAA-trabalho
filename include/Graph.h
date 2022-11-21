@@ -10,30 +10,31 @@
 #include <vector>
 #include <utility>
 #include <set>
+#include <sstream>
+#include <string>
 
 using std::set;
+using std::string;
 using std::copy;
 using std::vector;
 using std::cout;
 using std::endl;
+using std::stringstream;
 
-namespace sc
-{
+namespace sc {
 
 template < typename T >
-class Graph
-{
+class Graph {
 
-public:
+ public:
 
-  struct Edge
-  {
+  struct Edge {
     T data;
     bool isCovered;
     bool alreadySeen;
     Edge* next;
 
-    Edge ( T d = T{}, Edge* n = nullptr, bool i = false, bool al = false )
+    Edge(T d = T{}, Edge* n = nullptr, bool i = false, bool al = false)
       : data{ d },
         isCovered{ i },
         alreadySeen{ al },
@@ -41,15 +42,14 @@ public:
     { /* empty */ }
   };
 
-  struct Vertex
-  {
+  struct Vertex {
     T data;
     size_t degree;
     size_t loss;
     size_t gain;
     Edge* next;
 
-    Vertex ( T d = T{}, Edge* edge = nullptr, size_t de = 0, size_t l = 0, size_t g = 0)
+    Vertex(T d = T{}, Edge* edge = nullptr, size_t de = 0, size_t l = 0, size_t g = 0)
       : data{ d },
         degree{ de },
         loss{ l },
@@ -58,22 +58,20 @@ public:
     { /* empty */ }
   };
 
-private:
+ private:
 
   vector<Vertex*> adjacencyList;
 
   using  iterator = typename vector<sc::Graph<T>::Vertex*>::iterator;
 
-public:
+ public:
 
-  Graph()
-  {
+  Graph() {
     /* empty */
   }
 
-  ~Graph()
-  {
-    for ( auto vertex : adjacencyList ) {
+  ~Graph() {
+    for (auto vertex : adjacencyList) {
       //cout << "VERTEX: " << vertex->data << endl;
       removeAllEdges(vertex->next);
       //cout << "DELETED VERTEX: " << vertex->data << endl;
@@ -81,52 +79,42 @@ public:
     }
   }
 
- void removeAllEdges(Edge* edge)
- {
-   if (edge != nullptr ) {
-     if ( edge->next != nullptr )
-     {
-       removeAllEdges(edge->next);
-     }
-     //cout << "DELETED EDGE: " << edge->data << endl;
-     delete edge;
-   }
- }
+  void removeAllEdges(Edge* edge) {
+    if (edge != nullptr) {
+      if (edge->next != nullptr) {
+        removeAllEdges(edge->next);
+      }
+      //cout << "DELETED EDGE: " << edge->data << endl;
+      delete edge;
+    }
+  }
 
 
-  iterator begin()
-  {
+  iterator begin() {
     return adjacencyList.begin();
   }
 
-  iterator end()
-  {
+  iterator end() {
     return adjacencyList.end();
   }
 
-  bool empty ( void ) const
-  {
+  bool empty(void) const {
     return adjacencyList.size() == 0;
   }
 
-  size_t size ( void ) const
-  {
+  size_t size(void) const {
     return adjacencyList.size();
   }
 
-  void addEdge ( std::pair<T,T> values )
-  {
-    addEdgeAux ( values );
-    addEdgeAux ( std::make_pair ( values.second, values.first ) );
+  void addEdge(std::pair<T, T> values) {
+    addEdgeAux(values);
+    addEdgeAux(std::make_pair(values.second, values.first));
   }
 
-  iterator findVertex ( T value )
-  {
+  iterator findVertex(T value) {
     auto it = begin();
-    while ( it != end() )
-    {
-      if ( ( *it )->data == value )
-      {
+    while (it != end()) {
+      if ((*it)->data == value) {
         return it;
       }
       it++;
@@ -134,56 +122,54 @@ public:
     return it;
   }
 
-  size_t vertexDegree ( T value )
-  {
-    return ( *findVertex ( value ) )->degree;
+  size_t vertexDegree(T value) {
+    return (*findVertex(value))->degree;
   }
 
-  size_t vertexLoss ( T value )
-  {
-    return ( *findVertex ( value ) )->loss;
+  size_t vertexLoss(T value) {
+    return (*findVertex(value))->loss;
   }
 
-  void updateLoss ( T value )
-  {
-    ( *findVertex ( value ) )->loss++;
+  void updateLoss(T value, int dif) {
+    (*findVertex(value))->loss = (*findVertex(value))->loss + dif;
   }
 
-  void updateGain ( T value )
-  {
-    ( *findVertex ( value ) )->gain++;
+  void updateGain(T value, int dif) {
+    (*findVertex(value))->gain = (*findVertex(value))->gain + dif;
   }
 
-  void updateLossNeighbors ( T value )
-  {
-    auto edge = ( *findVertex ( value ) )->next;
+  void updateLossNeighbors(T value, int dif) {
+    auto edge = (*findVertex(value))->next;
 
     while (edge != nullptr) {
-      updateLoss ( edge->data );
+      updateLoss(edge->data, dif);
       edge = edge->next;
     }
   }
 
-  void updateGainNeighbors ( T value )
-  {
-    auto edge = ( *findVertex ( value ) )->next;
+  void updateGainNeighbors(T value, int dif) {
+    auto vertex = findVertex(value);
 
-    while (edge != nullptr) {
-      updateGain ( edge->data );
-      edge = edge->next;
+    // For each edge of "vertex".
+    for (auto edge = (*vertex)->next; edge != nullptr; edge = edge->next) {
+      if (!edge->isCovered)
+        updateGain(edge->data, dif);
     }
   }
 
-  void coverEdge ( std::pair<T,T> values )
-  {
-    coverEdgeAux ( values );
-    coverEdgeAux ( std::make_pair ( values.second, values.first ) );
+  void coverEdge(std::pair<T, T> values) {
+    coverEdgeAux(values);
+    coverEdgeAux(std::make_pair(values.second, values.first));
   }
 
-  void seeEdge ( std::pair<T,T> values )
-  {
-    seeEdgeAux ( values );
-    seeEdgeAux ( std::make_pair ( values.second, values.first ) );
+  void uncoverEdge(std::pair<T, T> values) {
+    uncoverEdgeAux(values);
+    uncoverEdgeAux(std::make_pair(values.second, values.first));
+  }
+
+  void seeEdge(std::pair<T, T> values) {
+    seeEdgeAux(values);
+    seeEdgeAux(std::make_pair(values.second, values.first));
   }
 
   // TODO: it is wrong
@@ -195,11 +181,10 @@ public:
       vertex = findVertex(vertexValue);
 
       if (vertex != end()) {
-        if((*vertex)->gain != 0) {
+        if ((*vertex)->gain != 0) {
           return false;
         }
-      }
-      else {
+      } else {
         cout << "ERROR: Vertex not found in isVertexCover function" << endl;
         return false;
       }
@@ -207,8 +192,7 @@ public:
     return true;
   }
 
-  iterator getMinimumLossVertex (set<int> C)
-  {
+  iterator getMinimumLossVertex(set<int> C) {
     if (C.empty())
       return this->end();
 
@@ -227,16 +211,13 @@ public:
     return minLossVertex;
   }
 
-  Edge* getRandomUncoveredEdge()
-  {
+  Edge* getRandomUncoveredEdge() {
     // For each edge in G.
-    for (auto vertex = this->begin(); vertex != this->end(); ++vertex)
-    {
-      for (auto edge = (*vertex)->next; edge != nullptr; edge = edge->next)
-      {
+    for (auto vertex = this->begin(); vertex != this->end(); ++vertex) {
+      for (auto edge = (*vertex)->next; edge != nullptr; edge = edge->next) {
 
         // If the edge is uncovered.
-        if ( ! edge->isCovered ) {
+        if (! edge->isCovered) {
           cout << "getRandomUncoveredEdge FOUND" << (*vertex)->data << " -- " << edge->data << endl;
           return edge;
         }
@@ -247,32 +228,35 @@ public:
     return (*this->begin())->next;
   }
 
-private:
+  string toString() {
+    stringstream ss;
+    ss << "DATA\t" << "LOSS\t" << "GAIN\t" << "DEGREE\t" << endl;
+    for (auto vertex = this->begin(); vertex != this->end(); ++vertex)
+      ss << (*vertex)->data << "\t" << (*vertex)->loss << "\t" << (*vertex)->gain<< "\t" << (*vertex)->degree << endl;
 
-  void addEdgeAux ( std::pair<T,T> values )
-  {
-    Edge* n = new Edge ( values.second );
-
-    if ( findVertex ( values.first ) != end() )
-    {
-      auto temp = findVertex ( values.first );
-      ( *temp )->degree++;
-      auto aux = ( *temp )->next;
-      while ( aux->next != nullptr )
-        aux = aux->next;
-      aux->next = n;
-    }
-    else
-      adjacencyList.push_back ( new Vertex ( values.first, n, 1 ) );
+    return ss.str();
   }
 
-  void coverEdgeAux ( std::pair<T,T> values )
-  {
-    auto aux = ( *findVertex ( values.first ) )->next;
-    while ( aux != nullptr )
-    {
-      if ( aux->data == values.second )
-      {
+ private:
+
+  void addEdgeAux(std::pair<T, T> values) {
+    Edge* n = new Edge(values.second);
+
+    if (findVertex(values.first) != end()) {
+      auto temp = findVertex(values.first);
+      (*temp)->degree++;
+      auto aux = (*temp)->next;
+      while (aux->next != nullptr)
+        aux = aux->next;
+      aux->next = n;
+    } else
+      adjacencyList.push_back(new Vertex(values.first, n, 1));
+  }
+
+  void coverEdgeAux(std::pair<T, T> values) {
+    auto aux = (*findVertex(values.first))->next;
+    while (aux != nullptr) {
+      if (aux->data == values.second) {
         aux->isCovered = true;
         return;
       }
@@ -280,13 +264,21 @@ private:
     }
   }
 
-  void seeEdgeAux ( std::pair<T,T> values )
-  {
-    auto aux = ( *findVertex ( values.first ) )->next;
-    while ( aux != nullptr )
-    {
-      if ( aux->data == values.second )
-      {
+  void uncoverEdgeAux(std::pair<T, T> values) {
+    auto aux = (*findVertex(values.first))->next;
+    while (aux != nullptr) {
+      if (aux->data == values.second) {
+        aux->isCovered = false;
+        return;
+      }
+      aux = aux->next;
+    }
+  }
+
+  void seeEdgeAux(std::pair<T, T> values) {
+    auto aux = (*findVertex(values.first))->next;
+    while (aux != nullptr) {
+      if (aux->data == values.second) {
         aux->alreadySeen = true;
         return;
       }
