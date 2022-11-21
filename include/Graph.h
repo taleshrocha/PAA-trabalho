@@ -156,17 +156,21 @@ public:
 
   void updateLossNeighbors ( T value )
   {
-    auto vertex = ( *findVertex ( value ) )->next;
-    for (auto edge : *vertex) {
-      updateLoss ( ( *edge ).data );
+    auto edge = ( *findVertex ( value ) )->next;
+
+    while (edge != nullptr) {
+      updateLoss ( edge->data );
+      edge = edge->next;
     }
   }
 
   void updateGainNeighbors ( T value )
   {
-    auto vertex = ( *findVertex ( value ) )->next;
-    for (auto edge : *vertex) {
-      updateGain ( ( *edge ).data );
+    auto edge = ( *findVertex ( value ) )->next;
+
+    while (edge != nullptr) {
+      updateGain ( edge->data );
+      edge = edge->next;
     }
   }
 
@@ -221,6 +225,26 @@ public:
     }
 
     return minLossVertex;
+  }
+
+  Edge* getRandomUncoveredEdge()
+  {
+    // For each edge in G.
+    for (auto vertex = this->begin(); vertex != this->end(); ++vertex)
+    {
+      for (auto edge = (*vertex)->next; edge != nullptr; edge = edge->next)
+      {
+
+        // If the edge is uncovered.
+        if ( ! edge->isCovered ) {
+          cout << "getRandomUncoveredEdge FOUND" << (*vertex)->data << " -- " << edge->data << endl;
+          return edge;
+        }
+      }
+    }
+
+    cout << "getRandomUncoveredEdge NOT FOUND" << endl;
+    return (*this->begin())->next;
   }
 
 private:

@@ -11,6 +11,7 @@ using std::cout;
 using std::endl;
 using std::set;
 using std::vector;
+using std::pair;
 using std::make_pair;
 using sc::Graph;
 
@@ -25,7 +26,7 @@ set<int> edgeGreedyVC ( Graph<int> *G )
     for (auto vertexNext = (*vertex)->next; vertexNext != nullptr; vertexNext = vertexNext->next)
     {
 
-      // If the edge in uncovered.
+      // If the edge is uncovered.
       if ( ! vertexNext->isCovered )
       {
 
@@ -81,6 +82,12 @@ set<int> edgeGreedyVC ( Graph<int> *G )
 //set<int> fastVC ( Graph<int> *G, set<int> C, std::chrono::milliseconds cutoffTime )
 set<int> fastVC ( Graph<int> *G, set<int> C)
 {
+  //// TODO: fix that later.
+  //G->updateLoss(6);
+
+  for (  auto vertex : C )
+    cout << vertex << "\t" << G->vertexLoss ( vertex ) << "\t" << G->vertexDegree( vertex ) << endl;
+
   set<int> C_;
   //std::chrono::milliseconds elapsedTime{0};
   //std::chrono::steady_clock::time_point end;
@@ -102,18 +109,19 @@ set<int> fastVC ( Graph<int> *G, set<int> C)
 
     C.erase((*minLossVertex)->data);
 
-    for (  auto vertex : C )
-      cout << vertex << "\t" << G->vertexLoss ( vertex ) << "\t" << G->vertexDegree( vertex ) << endl;
   }
 
   // Choose remove vertex.
   auto removeVertex = G->getMinimumLossVertex(C);
 
   C.erase((*removeVertex)->data);
+  // The loss might decrease. Maybe the loss will become the gain.
   G->updateLossNeighbors( (*removeVertex)->data );
   G->updateGainNeighbors( (*removeVertex)->data );
 
-  //auto randomUncoveredEdge = G->getRandomUncoveredEdge(C);
+  //TODO: look for errors.
+  auto randomUncoveredEdge = G->getRandomUncoveredEdge();
+  cout << "randUncvEdge: " << randomUncoveredEdge->data << endl;
   //auto vertex = G->greaterGainEndpoint(randomUncoveredEdge); // TODO: Breaks ties in favor of the older one. How to implement?
   //C.add(vertex);
   //G->updateLossNeighbors( vertex );
