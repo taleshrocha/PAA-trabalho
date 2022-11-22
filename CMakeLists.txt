@@ -7,13 +7,13 @@ set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Set the compiling flags
 add_compile_options(
-  -g
+  #-g
   -Wall
   -Werror
   -Wextra
   -Wpedantic
   -ansi
-  -Ofast
+  #-Ofast
   -fsanitize=address,undefined
   -lm
 )

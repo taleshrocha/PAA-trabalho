@@ -130,6 +130,10 @@ class Graph {
     return (*findVertex(value))->loss;
   }
 
+  size_t vertexGain(T value) {
+    return (*findVertex(value))->gain;
+  }
+
   void updateLoss(T value, int dif) {
     (*findVertex(value))->loss = (*findVertex(value))->loss + dif;
   }
@@ -172,23 +176,14 @@ class Graph {
     seeEdgeAux(std::make_pair(values.second, values.first));
   }
 
-  // TODO: it is wrong
-  // Look everybody in G and see if somebody has gain bigger than 0.
-  bool isVertexCover(set<int> C) {
-    iterator vertex;
+  bool isVertexCover() {
 
-    for (auto vertexValue : C) {
-      vertex = findVertex(vertexValue);
-
-      if (vertex != end()) {
-        if ((*vertex)->gain != 0) {
-          return false;
-        }
-      } else {
-        cout << "ERROR: Vertex not found in isVertexCover function" << endl;
+    // For all vertex.
+    for (auto vertex = this->begin(); vertex != this->end(); ++vertex) {
+      if ((*vertex)->gain > 0)
         return false;
-      }
     }
+
     return true;
   }
 
@@ -211,14 +206,14 @@ class Graph {
     return minLossVertex;
   }
 
-  Edge* getRandomUncoveredEdge() {
+  Edge* getRandomUncoveredEdge(int *vertexValue) {
     // For each edge in G.
     for (auto vertex = this->begin(); vertex != this->end(); ++vertex) {
+      *vertexValue = (*vertex)->data;
       for (auto edge = (*vertex)->next; edge != nullptr; edge = edge->next) {
 
         // If the edge is uncovered.
         if (! edge->isCovered) {
-          cout << "getRandomUncoveredEdge FOUND" << (*vertex)->data << " -- " << edge->data << endl;
           return edge;
         }
       }
@@ -230,11 +225,33 @@ class Graph {
 
   string toString() {
     stringstream ss;
-    ss << "DATA\t" << "LOSS\t" << "GAIN\t" << "DEGREE\t" << endl;
-    for (auto vertex = this->begin(); vertex != this->end(); ++vertex)
-      ss << (*vertex)->data << "\t" << (*vertex)->loss << "\t" << (*vertex)->gain<< "\t" << (*vertex)->degree << endl;
+    // For each vertex.
+    for (auto vertex = this->begin(); vertex != this->end(); ++vertex) {
+      ss << 
+        "VERT: " << (*vertex)->data << "\t" << 
+        "LOSS: " << (*vertex)->loss << "\t" << 
+        "GAIN: " << (*vertex)->gain << "\t" << 
+        "DEGR: " << (*vertex)->degree << endl;
+      // For each edge of "vertex".
+      for (auto edge = (*vertex)->next; edge != nullptr; edge = edge->next)
+        ss << "\t" <<
+          "EDGE: " << edge->data << "\t" << 
+          "ISCV: " << edge->isCovered << "\t" << 
+          "ALSE: " << edge->alreadySeen << endl;
+      ss << endl;
+    }
 
     return ss.str();
+  }
+
+  iterator greaterGainEndpoint(int vertexValue, Edge *edge) {
+    auto firstVertex = findVertex(vertexValue);
+    auto secondVertex = findVertex(edge->data);
+
+    if ((*firstVertex)->gain >= (*secondVertex)->gain)
+      return firstVertex;
+    else
+      return secondVertex;
   }
 
  private:
