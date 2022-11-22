@@ -28,9 +28,8 @@ set<int> edgeGreedyVC(Graph<int>* G) {
       // If the edge is uncovered.
       if (!edge->isCovered) {
 
-        // TODO: we are getting the vertex with the smaller degree now.
         // Add the endpoint of the edge (the vertex) with the higher degree into C.
-        if (G->vertexDegree((*vertex)->data) < G->vertexDegree(edge->data))
+        if (G->vertexDegree((*vertex)->data) > G->vertexDegree(edge->data))
           C.insert((*vertex)->data);
 
         else
@@ -80,23 +79,28 @@ set<int> fastVC(Graph<int>* G, set<int> C, int iterations) {
   while (iterations > 0) {
     cout << "ITERATION: " << iterations << endl;
 
+    cout << G->toString();
+    cout << "\n\n";
+
     // If C covers all edges of G.
     if (G->isVertexCover()) { // If it covers all edges, them the gain of all vertex is 0.
-      cout << "IS VERTEX COVER!" << endl;
-      cout << G->toString();
-      cout << "\n\n";
+      cout << "===== IS VERTEX COVER =====\n\n" << endl;
       C_ = C;
       auto minLossVertex = G->getMinimumLossVertex(C);
       C.erase((*minLossVertex)->data);
 
-      // Uncover all edges of the removed vertex.
-      for (auto edge = (*minLossVertex)->next; edge != nullptr; edge = edge->next)
-        G->uncoverEdge(make_pair((*minLossVertex)->data, edge->data));
+      // Uncover all edges that don't have a vertex covering it.
+      for (auto edge = (*minLossVertex)->next; edge != nullptr; edge = edge->next) {
+        if (C.find(edge->data) == C.end()) {
+          G->uncoverEdge(make_pair((*minLossVertex)->data, edge->data));
+        }
+      }
 
       // Updates the loss and the gain. The gain becomes the loss and the loss is going to 0.
       G->updateGain((*minLossVertex)->data, (*minLossVertex)->loss);
       G->updateGainNeighbors((*minLossVertex)->data, 1);
-      G->updateLoss((*minLossVertex)->data, -(*minLossVertex)->loss);
+      G->updateLossNeighbors((*minLossVertex)->data, 1);
+      G->updateLoss((*minLossVertex)->data, -(*minLossVertex)->loss); // Loss goes to 0.
     }
 
     // Choose a vertex to remove and remove it.
@@ -104,14 +108,16 @@ set<int> fastVC(Graph<int>* G, set<int> C, int iterations) {
     C.erase((*removeVertex)->data);
 
     // Uncover all edges of the removed vertex.
-    for (auto edge = (*removeVertex)->next; edge != nullptr; edge = edge->next)
-      G->uncoverEdge(make_pair((*removeVertex)->data, edge->data));
+    for (auto edge = (*removeVertex)->next; edge != nullptr; edge = edge->next) {
+      if (C.find(edge->data) == C.end()) {
+        G->uncoverEdge(make_pair((*removeVertex)->data, edge->data));
+      }
+    }
 
     // Updates the loss and the gain. The gain becomes the loss and the loss is going to 0.
     G->updateGain((*removeVertex)->data, (*removeVertex)->loss);
     G->updateGainNeighbors((*removeVertex)->data, 1);
-    G->updateLoss((*removeVertex)->data, -(*removeVertex)->loss);
-
+    G->updateLoss((*removeVertex)->data, -(*removeVertex)->loss); // Loss goes to 0.
 
     int vertexValue = 0;
     auto randomUncoveredEdge = G->getRandomUncoveredEdge(&vertexValue); // The first uncovered edge it finds.
@@ -124,15 +130,15 @@ set<int> fastVC(Graph<int>* G, set<int> C, int iterations) {
     // Updates the loss and the gain. The gain becomes the loss and the loss is going to 0.
     G->updateLoss((*greaterGainVertex)->data, (*greaterGainVertex)->gain);
     G->updateGainNeighbors((*greaterGainVertex)->data, -1);
-    G->updateGain((*greaterGainVertex)->data, -(*greaterGainVertex)->gain);
+    G->updateGain((*greaterGainVertex)->data, -(*greaterGainVertex)->gain); // Gain goes to 0.
 
+    // IMPORTANT: Don't change the order! This becomes after the gain and loss update.
     // Cover all edges of this vertex.
     for (auto edge = (*greaterGainVertex)->next; edge != nullptr; edge = edge->next)
       G->coverEdge(make_pair((*greaterGainVertex)->data, edge->data));
 
     iterations--;
   }
-
 
   return C_;
 }
