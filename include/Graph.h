@@ -12,6 +12,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <stdlib.h>
 
 using std::set;
 using std::string;
@@ -20,6 +21,8 @@ using std::vector;
 using std::cout;
 using std::endl;
 using std::stringstream;
+using std::pair;
+using std::make_pair;
 
 namespace sc {
 
@@ -202,6 +205,7 @@ class Graph {
       vertex = findVertex(vertexValue);
 
       if ((*vertex)->loss <= minLoss) {
+        minLoss = (*vertex)->loss;
         minLossVertex = vertex;
       }
     }
@@ -209,21 +213,52 @@ class Graph {
     return minLossVertex;
   }
 
-  Edge* getRandomUncoveredEdge(int *vertexValue) {
+  iterator getRandomMinimumLossVertex(set<int> C) {
+    if (C.empty())
+      return this->end();
+
+    vector<iterator> v;
+    iterator vertex = findVertex(*(C.begin()));
+
+    size_t minLoss = (*vertex)->loss;
+
+    for (auto vertexValue : C) {
+      vertex = findVertex(vertexValue);
+
+      if ((*vertex)->loss < minLoss) {
+        minLoss = (*vertex)->loss;
+      }
+    }
+
+    for (auto vertexValue : C) {
+      vertex = findVertex(vertexValue);
+      if ((*vertex)->loss == minLoss) {
+        v.push_back(vertex);
+      }
+    }
+
+    int random = rand() % v.size();
+    return v[random];
+  }
+
+  pair<int, int> getRandomUncoveredEdge(int *firstVertexValue, int *secondVertexValue) {
+    vector<pair<int, int>> v;
     // For each edge in G.
     for (auto vertex = this->begin(); vertex != this->end(); ++vertex) {
-      *vertexValue = (*vertex)->data;
+      *firstVertexValue = (*vertex)->data;
       for (auto edge = (*vertex)->next; edge != nullptr; edge = edge->next) {
+        *secondVertexValue = edge->data;
 
         // If the edge is uncovered.
         if (! edge->isCovered) {
-          return edge;
+          v.push_back(make_pair(*firstVertexValue, *secondVertexValue));
         }
       }
     }
 
-    cout << "getRandomUncoveredEdge NOT FOUND" << endl;
-    return (*this->begin())->next;
+    int random = rand() % v.size();
+    return v[random];
+
   }
 
   string toString() {
@@ -234,6 +269,7 @@ class Graph {
         "VERT: " << (*vertex)->data << "\t" << 
         "LOSS: " << (*vertex)->loss << "\t" << 
         "GAIN: " << (*vertex)->gain << "\t" << 
+        "AGE.: " << (*vertex)->age << "\t" << 
         "DEGR: " << (*vertex)->degree << endl;
       // For each edge of "vertex".
       for (auto edge = (*vertex)->next; edge != nullptr; edge = edge->next)
@@ -247,14 +283,27 @@ class Graph {
     return ss.str();
   }
 
-  iterator greaterGainEndpoint(int vertexValue, Edge *edge) {
-    auto firstVertex = findVertex(vertexValue);
-    auto secondVertex = findVertex(edge->data);
+  iterator greaterGainEndpoint(int firstVertexValue, int secondVertexValue) {
+    auto firstVertex = findVertex(firstVertexValue);
+    auto secondVertex = findVertex(secondVertexValue);
 
-    if ((*firstVertex)->gain >= (*secondVertex)->gain)
+    //cout << "In greaterGainEndpoint" << endl;
+    //cout << firstVertexValue << " -- " << secondVertexValue << endl;
+    if ((*firstVertex)->gain == (*secondVertex)->gain) {
+      if ((*firstVertex)->age >= (*secondVertex)->age)
+        return firstVertex;
+      else
+        return secondVertex;
+    }
+
+    if ((*firstVertex)->gain > (*secondVertex)->gain)
       return firstVertex;
     else
       return secondVertex;
+  }
+
+  void updateAge(T value, int dif) {
+    (*findVertex(value))->age = (*findVertex(value))->age + dif;
   }
 
  private:

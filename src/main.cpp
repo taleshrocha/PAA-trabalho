@@ -6,6 +6,7 @@
 #include <vector>
 #include <set>
 #include <chrono>
+#include <stdlib.h>
 
 using std::cout;
 using std::endl;
@@ -77,10 +78,18 @@ set<int> fastVC(Graph<int>* G, set<int> C, int iterations) {
   set<int> C_;
 
   while (iterations > 0) {
+
+    // For each vertex in G.
+    for (auto vertex = G->begin(); vertex != G->end(); ++vertex) {
+      if (C.find((*vertex)->data) == C.end()) { // If the vertex is not in the cover.
+        G->updateAge((*vertex)->data, 1);
+      }
+    }
+
     cout << "ITERATION: " << iterations << endl;
 
-    cout << G->toString();
-    cout << "\n\n";
+    //cout << G->toString();
+    //cout << "\n\n";
 
     // If C covers all edges of G.
     if (G->isVertexCover()) { // If it covers all edges, them the gain of all vertex is 0.
@@ -101,10 +110,12 @@ set<int> fastVC(Graph<int>* G, set<int> C, int iterations) {
       G->updateGainNeighbors((*minLossVertex)->data, 1);
       G->updateLossNeighbors((*minLossVertex)->data, 1);
       G->updateLoss((*minLossVertex)->data, -(*minLossVertex)->loss); // Loss goes to 0.
+
+      G->updateAge((*minLossVertex)->data, -(*minLossVertex)->age);
     }
 
     // Choose a vertex to remove and remove it.
-    auto removeVertex = G->getMinimumLossVertex(C);
+    auto removeVertex = G->getRandomMinimumLossVertex(C);
     C.erase((*removeVertex)->data);
 
     // Uncover all edges of the removed vertex.
@@ -119,11 +130,14 @@ set<int> fastVC(Graph<int>* G, set<int> C, int iterations) {
     G->updateGainNeighbors((*removeVertex)->data, 1);
     G->updateLoss((*removeVertex)->data, -(*removeVertex)->loss); // Loss goes to 0.
 
-    int vertexValue = 0;
-    auto randomUncoveredEdge = G->getRandomUncoveredEdge(&vertexValue); // The first uncovered edge it finds.
+    G->updateAge((*removeVertex)->data, -(*removeVertex)->age);
 
-    // TODO: Breaks ties in favor of the older one. How to implement?
-    auto greaterGainVertex = G->greaterGainEndpoint(vertexValue, randomUncoveredEdge); 
+    int firstVertexValue = 0;
+    int secondVertexValue = 0;
+    auto randomUncoveredEdge = G->getRandomUncoveredEdge(&firstVertexValue, &secondVertexValue); // The first uncovered edge it finds.
+
+    //  Breaks ties in favor of the older one.
+    auto greaterGainVertex = G->greaterGainEndpoint(randomUncoveredEdge.first, randomUncoveredEdge.second); 
 
     C.insert((*greaterGainVertex)->data);
 
@@ -150,6 +164,7 @@ int main(int argc, char* argv[]) {
   }
 
   std::ifstream infile(argv[1]);
+  srand (time(NULL));
 
   if (!infile) {
     cout << "Error: Could not open file '" << argv[1] << "' or it doesn't exist!" << endl;
@@ -189,7 +204,7 @@ int main(int argc, char* argv[]) {
     for (auto vertex : C)
       cout << vertex << "\t" << G->vertexLoss(vertex) << "\t" << G->vertexDegree(vertex) << endl;
 
-    C = fastVC(G, C, 100);
+    C = fastVC(G, C, 10);
 
     cout << "\n\n\t=== FAST_VC RESULTS ===\n\n";
     cout << "COVER SIZE: " << C.size() << endl;
