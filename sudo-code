@@ -10,8 +10,8 @@ BuscaLocal {
       remova o vértice com o loss mínimo de C
     }
 
-    remova o vértice com o loss mínimo
-    e <- a primeira aresta descoberta que encontrar (busca linear)
+    remova um vértice com o loss mínimo aleatório
+    e <- uma aresta aleatória do grafo
     v <- o vértice com o maior gain de e
     adicione v à C
     i++
