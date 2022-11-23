@@ -47,13 +47,13 @@ class Graph {
 
   struct Vertex {
     T data;
-    size_t degree;
-    size_t loss;
-    size_t gain;
-    size_t age;
+    int degree;
+    int loss;
+    int gain;
+    int age;
     Edge* next;
 
-    Vertex(T d = T{}, Edge* edge = nullptr, size_t de = 0, size_t l = 0, size_t g = 0, size_t a = 0)
+    Vertex(T d = T{}, Edge* edge = nullptr, int de = 0, int l = 0, int g = 0, int a = 0)
       : data{ d },
         degree{ de },
         loss{ l },
@@ -107,7 +107,7 @@ class Graph {
     return adjacencyList.size() == 0;
   }
 
-  size_t size(void) const {
+  int size(void) const {
     return adjacencyList.size();
   }
 
@@ -127,42 +127,46 @@ class Graph {
     return it;
   }
 
-  size_t vertexDegree(T value) {
+  int vertexDegree(T value) {
     return (*findVertex(value))->degree;
   }
 
-  size_t vertexLoss(T value) {
+  int vertexLoss(T value) {
     return (*findVertex(value))->loss;
   }
 
-  size_t vertexGain(T value) {
+  int vertexGain(T value) {
     return (*findVertex(value))->gain;
   }
 
+  int vertexAge(T value) {
+    return (*findVertex(value))->age;
+  }
+
   void updateLoss(T value, int dif) {
-    (*findVertex(value))->loss = (*findVertex(value))->loss + dif;
+    (*findVertex(value))->loss += dif;
   }
 
   void updateGain(T value, int dif) {
-    (*findVertex(value))->gain = (*findVertex(value))->gain + dif;
+    (*findVertex(value))->gain += dif;
   }
 
-  void updateLossNeighbors(T value, int dif) {
+  void updateLossNeighbors(T value, int dif, set<int> C) {
     auto vertex = findVertex(value);
 
     // For each edge of "vertex".
     for (auto edge = (*vertex)->next; edge != nullptr; edge = edge->next) {
-      if (edge->isCovered)
+      if (C.find(edge->data) != C.end())
         updateLoss(edge->data, dif);
     }
   }
 
-  void updateGainNeighbors(T value, int dif) {
+  void updateGainNeighbors(T value, int dif, set<int> C) {
     auto vertex = findVertex(value);
 
     // For each edge of "vertex".
     for (auto edge = (*vertex)->next; edge != nullptr; edge = edge->next) {
-      if (!edge->isCovered)
+      if (C.find(edge->data) == C.end())
         updateGain(edge->data, dif);
     }
   }
@@ -183,14 +187,21 @@ class Graph {
   }
 
   bool isVertexCover() {
-
     // For all vertex.
     for (auto vertex = this->begin(); vertex != this->end(); ++vertex) {
-      if ((*vertex)->gain > 0)
-        return false;
+      for (auto edge = (*vertex)->next; edge != nullptr; edge = edge->next) {
+        if (!edge->isCovered)
+          return false;
+      }
     }
-
     return true;
+    // // For all vertex.
+    // for (auto vertex = this->begin(); vertex != this->end(); ++vertex) {
+    //   if ((*vertex)- > 0)
+    //     return false;
+    // }
+
+    // return true;
   }
 
   iterator getMinimumLossVertex(set<int> C) {
@@ -199,7 +210,7 @@ class Graph {
 
     iterator minLossVertex = findVertex(*(C.begin()));
     iterator vertex = findVertex(*(C.begin()));
-    size_t minLoss = (*vertex)->loss;
+    int minLoss = (*vertex)->loss;
 
     for (auto vertexValue : C) {
       vertex = findVertex(vertexValue);
@@ -220,7 +231,7 @@ class Graph {
     vector<iterator> v;
     iterator vertex = findVertex(*(C.begin()));
 
-    size_t minLoss = (*vertex)->loss;
+    int minLoss = (*vertex)->loss;
 
     for (auto vertexValue : C) {
       vertex = findVertex(vertexValue);
@@ -303,7 +314,7 @@ class Graph {
   }
 
   void updateAge(T value, int dif) {
-    (*findVertex(value))->age = (*findVertex(value))->age + dif;
+    (*findVertex(value))->age += dif;
   }
 
  private:

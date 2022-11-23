@@ -17,6 +17,8 @@ using std::make_pair;
 using std::string;
 using sc::Graph;
 
+using namespace std::chrono;
+
 set<int> edgeGreedyVC(Graph<int>* G) {
 
   set<int> C;
@@ -30,7 +32,7 @@ set<int> edgeGreedyVC(Graph<int>* G) {
       if (!edge->isCovered) {
 
         // Add the endpoint of the edge (the vertex) with the higher degree into C.
-        if (G->vertexDegree((*vertex)->data) > G->vertexDegree(edge->data))
+        if (G->vertexDegree((*vertex)->data) >= G->vertexDegree(edge->data))
           C.insert((*vertex)->data);
 
         else
@@ -65,7 +67,7 @@ set<int> edgeGreedyVC(Graph<int>* G) {
   auto vertex = C.begin();
   while (vertex != C.end()) {
     if (G->vertexLoss(*vertex) == 0) {
-      G->updateLossNeighbors(*vertex, 1);
+      G->updateLossNeighbors(*vertex, 1, C);
       vertex = C.erase(vertex);
     } else
       vertex++;
@@ -86,14 +88,14 @@ set<int> fastVC(Graph<int>* G, set<int> C, int iterations) {
       }
     }
 
-    cout << "ITERATION: " << iterations << endl;
+    //cout << "ITERATION: " << iterations << endl;
 
     //cout << G->toString();
     //cout << "\n\n";
 
     // If C covers all edges of G.
     if (G->isVertexCover()) { // If it covers all edges, them the gain of all vertex is 0.
-      cout << "===== IS VERTEX COVER =====\n\n" << endl;
+      //cout << "===== IS VERTEX COVER =====\n\n" << endl;
       C_ = C;
       auto minLossVertex = G->getMinimumLossVertex(C);
       C.erase((*minLossVertex)->data);
@@ -104,14 +106,15 @@ set<int> fastVC(Graph<int>* G, set<int> C, int iterations) {
           G->uncoverEdge(make_pair((*minLossVertex)->data, edge->data));
         }
       }
-
+      //cout << "R: " << (*minLossVertex)->data << endl;
       // Updates the loss and the gain. The gain becomes the loss and the loss is going to 0.
       G->updateGain((*minLossVertex)->data, (*minLossVertex)->loss);
-      G->updateGainNeighbors((*minLossVertex)->data, 1);
-      G->updateLossNeighbors((*minLossVertex)->data, 1);
+      G->updateGainNeighbors((*minLossVertex)->data, 1, C);
+      G->updateLossNeighbors((*minLossVertex)->data, 1, C);
       G->updateLoss((*minLossVertex)->data, -(*minLossVertex)->loss); // Loss goes to 0.
 
       G->updateAge((*minLossVertex)->data, -(*minLossVertex)->age);
+      continue;
     }
 
     // Choose a vertex to remove and remove it.
@@ -127,8 +130,10 @@ set<int> fastVC(Graph<int>* G, set<int> C, int iterations) {
 
     // Updates the loss and the gain. The gain becomes the loss and the loss is going to 0.
     G->updateGain((*removeVertex)->data, (*removeVertex)->loss);
-    G->updateGainNeighbors((*removeVertex)->data, 1);
+    G->updateGainNeighbors((*removeVertex)->data, 1, C);
     G->updateLoss((*removeVertex)->data, -(*removeVertex)->loss); // Loss goes to 0.
+    G->updateLossNeighbors((*removeVertex)->data, 1, C);
+    //cout << "R: " << (*removeVertex)->data << endl;
 
     G->updateAge((*removeVertex)->data, -(*removeVertex)->age);
 
@@ -143,8 +148,10 @@ set<int> fastVC(Graph<int>* G, set<int> C, int iterations) {
 
     // Updates the loss and the gain. The gain becomes the loss and the loss is going to 0.
     G->updateLoss((*greaterGainVertex)->data, (*greaterGainVertex)->gain);
-    G->updateGainNeighbors((*greaterGainVertex)->data, -1);
+    G->updateGainNeighbors((*greaterGainVertex)->data, -1, C);
     G->updateGain((*greaterGainVertex)->data, -(*greaterGainVertex)->gain); // Gain goes to 0.
+    G->updateLossNeighbors((*greaterGainVertex)->data, -1, C); // Loss goes to 0.
+    //cout << "I: " << (*greaterGainVertex)->data << endl;
 
     // IMPORTANT: Don't change the order! This becomes after the gain and loss update.
     // Cover all edges of this vertex.
@@ -196,21 +203,35 @@ int main(int argc, char* argv[]) {
 
     cout << "GRAPH SIZE: " << G->size() << endl;
 
+    auto startEdgeGreedyVC = high_resolution_clock::now();
+
     set<int> C = edgeGreedyVC(G);
+
+    auto stopEdgeGreedyVC = high_resolution_clock::now();
+
+    auto durationEdgeGreedyVC = duration_cast<milliseconds>(stopEdgeGreedyVC - startEdgeGreedyVC);
 
     cout << "\n\n\t=== EDGE_GREEDY_VC RESULTS ===\n\n";
     cout << "COVER SIZE: " << C.size() << endl;
-    cout << "DATA\t" << "LOSS\t" << "DEGREE\t" << endl;
-    for (auto vertex : C)
-      cout << vertex << "\t" << G->vertexLoss(vertex) << "\t" << G->vertexDegree(vertex) << endl;
+    cout << "TIME: " << durationEdgeGreedyVC.count() << " milliseconds" << endl;
+    // cout << "DATA\t" << "LOSS\t" << "DEGREE\t" << endl;
+    // for (auto vertex : C)
+    //   cout << vertex << "\t" << G->vertexLoss(vertex) << "\t" << G->vertexDegree(vertex) << endl;
 
-    C = fastVC(G, C, 10);
+    auto startFastVC = high_resolution_clock::now();
+
+    C = fastVC(G, C, 50);
+
+    auto stopFastVC = high_resolution_clock::now();
+
+    auto durationFastVC = duration_cast<milliseconds>(stopFastVC - startFastVC);
 
     cout << "\n\n\t=== FAST_VC RESULTS ===\n\n";
     cout << "COVER SIZE: " << C.size() << endl;
-    cout << "DATA\t" << "LOSS\t" << "GAIN\t" << "DEGREE\t" << endl;
-    for (auto vertex : C)
-      cout << vertex << "\t" << G->vertexLoss(vertex) << "\t" << G->vertexGain(vertex) << "\t" << G->vertexDegree(vertex) << endl;
+    cout << "TIME: " << durationFastVC.count() << " milliseconds" << endl;
+    // cout << "DATA\t" << "LOSS\t" << "GAIN\t" << "AGE\t" << "DEGREE\t" << endl;
+    // for (auto vertex : C)
+    //   cout << vertex << "\t" << G->vertexLoss(vertex) << "\t" << G->vertexGain(vertex) << "\t" << G->vertexAge(vertex) << "\t" << G->vertexDegree(vertex) << endl;
 
     delete G;
 
