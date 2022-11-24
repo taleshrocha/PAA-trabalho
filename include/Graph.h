@@ -294,6 +294,14 @@ class Graph {
     return ss.str();
   }
 
+  void clearGraph() {
+    for (auto vertex = this->begin(); vertex != this->end(); ++vertex) {
+      (*vertex)->loss = (*vertex)->gain = (*vertex)->age = 0;
+      for (auto edge = (*vertex)->next; edge != nullptr; edge = edge->next)
+        edge->isCovered = edge->alreadySeen = false;
+    }
+  }
+
   iterator greaterGainEndpoint(int firstVertexValue, int secondVertexValue) {
     auto firstVertex = findVertex(firstVertexValue);
     auto secondVertex = findVertex(secondVertexValue);

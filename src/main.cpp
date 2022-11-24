@@ -203,36 +203,40 @@ int main(int argc, char* argv[]) {
 
     cout << "GRAPH SIZE: " << G->size() << endl;
 
-    auto startEdgeGreedyVC = high_resolution_clock::now();
+    for (size_t i = 0; i < 3; i++)
+    {
+      auto startEdgeGreedyVC = high_resolution_clock::now();
 
-    set<int> C = edgeGreedyVC(G);
+      set<int> C = edgeGreedyVC(G);
 
-    auto stopEdgeGreedyVC = high_resolution_clock::now();
+      auto stopEdgeGreedyVC = high_resolution_clock::now();
 
-    auto durationEdgeGreedyVC = duration_cast<milliseconds>(stopEdgeGreedyVC - startEdgeGreedyVC);
+      auto durationEdgeGreedyVC = duration_cast<milliseconds>(stopEdgeGreedyVC - startEdgeGreedyVC);
 
-    cout << "\n\n\t=== EDGE_GREEDY_VC RESULTS ===\n\n";
-    cout << "COVER SIZE: " << C.size() << endl;
-    cout << "TIME: " << durationEdgeGreedyVC.count() << " milliseconds" << endl;
-    // cout << "DATA\t" << "LOSS\t" << "DEGREE\t" << endl;
-    // for (auto vertex : C)
-    //   cout << vertex << "\t" << G->vertexLoss(vertex) << "\t" << G->vertexDegree(vertex) << endl;
+      cout << "\n\n\t=== EDGE_GREEDY_VC RESULTS ===\n\n";
+      cout << "COVER SIZE: " << C.size() << endl;
+      cout << "TIME: " << durationEdgeGreedyVC.count() << " milliseconds" << endl;
+      // cout << "DATA\t" << "LOSS\t" << "DEGREE\t" << endl;
+      // for (auto vertex : C)
+      //   cout << vertex << "\t" << G->vertexLoss(vertex) << "\t" << G->vertexDegree(vertex) << endl;
 
-    auto startFastVC = high_resolution_clock::now();
+      auto startFastVC = high_resolution_clock::now();
 
-    C = fastVC(G, C, 50);
+      C = fastVC(G, C, 50);
 
-    auto stopFastVC = high_resolution_clock::now();
+      auto stopFastVC = high_resolution_clock::now();
 
-    auto durationFastVC = duration_cast<milliseconds>(stopFastVC - startFastVC);
+      auto durationFastVC = duration_cast<milliseconds>(stopFastVC - startFastVC);
 
-    cout << "\n\n\t=== FAST_VC RESULTS ===\n\n";
-    cout << "COVER SIZE: " << C.size() << endl;
-    cout << "TIME: " << durationFastVC.count() << " milliseconds" << endl;
-    // cout << "DATA\t" << "LOSS\t" << "GAIN\t" << "AGE\t" << "DEGREE\t" << endl;
-    // for (auto vertex : C)
-    //   cout << vertex << "\t" << G->vertexLoss(vertex) << "\t" << G->vertexGain(vertex) << "\t" << G->vertexAge(vertex) << "\t" << G->vertexDegree(vertex) << endl;
-
+      cout << "\n\n\t=== FAST_VC RESULTS ===\n\n";
+      cout << "COVER SIZE: " << C.size() << endl;
+      cout << "TIME: " << durationFastVC.count() << " milliseconds" << endl;
+      // cout << "DATA\t" << "LOSS\t" << "GAIN\t" << "AGE\t" << "DEGREE\t" << endl;
+      // for (auto vertex : C)
+      //   cout << vertex << "\t" << G->vertexLoss(vertex) << "\t" << G->vertexGain(vertex) << "\t" << G->vertexAge(vertex) << "\t" << G->vertexDegree(vertex) << endl;
+    
+      G->clearGraph();
+    }
     delete G;
 
     return 0;
