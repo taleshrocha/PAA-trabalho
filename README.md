@@ -19,7 +19,7 @@ Repositório contendo as especificações do Trabalho da 3ª unidade da discipli
 
 # Como executar o projeto
   ```
-  ./build/graf
+  ./build/graf test-cases/caminho-para-o-arquivo-de-testes-desejado
   ```
 ## Especificação
   O projeto é compilado usando as seguintes "flags" de compilação
