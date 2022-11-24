@@ -1,0 +1,42 @@
+
+
+	=== EDGE_GREEDY_VC RESULTS ===
+
+COVER SIZE: 14
+TIME: 1 milliseconds
+DATA	DEGREE	
+1	16
+2	9
+3	10
+4	6
+5	3
+6	4
+7	4
+9	5
+26	3
+28	4
+30	4
+32	6
+33	12
+34	17
+
+
+	=== FAST_VC RESULTS ===
+
+COVER SIZE: 14
+TIME: 16 milliseconds
+DATA	DEGREE	
+1	16
+2	9
+3	10
+4	6
+5	3
+6	4
+7	4
+9	5
+26	3
+28	4
+30	4
+32	6
+33	12
+34	17

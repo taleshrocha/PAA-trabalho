@@ -6,8 +6,9 @@ Repositório contendo as especificações do Trabalho da 3ª unidade da discipli
 
 - ``src`` - Contém todos os arquivos ``.cpp``;
 - ``include`` - Contém todos os arquivos ``.hpp``;
-- ``data/in`` - Contém os arquivos com as chaves a serem inseridas, removidas ou buscadas em ordem;
-- ``build`` - Contém o ``Makefile``, o binário ``calc`` e todos os outros arquivos que o ``cmake`` cria.
+- ``test-cases`` - Contém todos os casos de teste utilizados durante o trabalho;
+- ``log-files`` - Contém todos os arquivos de log, ou seja, tudo que é impresso na tela também é escrito em um arquivo desta pasta;
+- ``build`` - Contém o ``Makefile``, o binário ``graf`` e todos os outros arquivos que o ``cmake`` cria.
 
 # Como compilar o projeto
 
@@ -18,17 +19,15 @@ Repositório contendo as especificações do Trabalho da 3ª unidade da discipli
 
 # Como executar o projeto
   ```
-  ./build/???
+  ./build/graf
   ```
 ## Especificação
   O projeto é compilado usando as seguintes "flags" de compilação
-  -g
   -Wall
   -Werror
   -Wextra
   -Wpedantic
   -ansi
-  -Ofast
   -fsanitize=address,undefined
   -lm
 

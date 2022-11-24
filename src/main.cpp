@@ -95,7 +95,7 @@ set<int> fastVC(Graph<int>* G, set<int> C, int iterations) {
 
     // If C covers all edges of G.
     if (G->isVertexCover()) { // If it covers all edges, them the gain of all vertex is 0.
-      //cout << "===== IS VERTEX COVER =====\n\n" << endl;
+                              //cout << "===== IS VERTEX COVER =====\n\n" << endl;
       C_ = C;
       auto minLossVertex = G->getMinimumLossVertex(C);
       C.erase((*minLossVertex)->data);
@@ -151,10 +151,10 @@ set<int> fastVC(Graph<int>* G, set<int> C, int iterations) {
     G->updateGainNeighbors((*greaterGainVertex)->data, -1, C);
     G->updateGain((*greaterGainVertex)->data, -(*greaterGainVertex)->gain); // Gain goes to 0.
     G->updateLossNeighbors((*greaterGainVertex)->data, -1, C); // Loss goes to 0.
-    //cout << "I: " << (*greaterGainVertex)->data << endl;
+                                                               //cout << "I: " << (*greaterGainVertex)->data << endl;
 
-    // IMPORTANT: Don't change the order! This becomes after the gain and loss update.
-    // Cover all edges of this vertex.
+                                                               // IMPORTANT: Don't change the order! This becomes after the gain and loss update.
+                                                               // Cover all edges of this vertex.
     for (auto edge = (*greaterGainVertex)->next; edge != nullptr; edge = edge->next)
       G->coverEdge(make_pair((*greaterGainVertex)->data, edge->data));
 
@@ -203,40 +203,74 @@ int main(int argc, char* argv[]) {
 
     cout << "GRAPH SIZE: " << G->size() << endl;
 
+    milliseconds durationFastVC(0);
+    milliseconds durationEdgeGreedyVC(0);
+
+    set<int> cEdgeGreedy;
+    set<int> cFast;
     for (size_t i = 0; i < 3; i++)
     {
       auto startEdgeGreedyVC = high_resolution_clock::now();
 
       set<int> C = edgeGreedyVC(G);
 
+      cEdgeGreedy = C;
+
       auto stopEdgeGreedyVC = high_resolution_clock::now();
+      durationEdgeGreedyVC += duration_cast<milliseconds>(stopEdgeGreedyVC - startEdgeGreedyVC);
 
-      auto durationEdgeGreedyVC = duration_cast<milliseconds>(stopEdgeGreedyVC - startEdgeGreedyVC);
-
-      cout << "\n\n\t=== EDGE_GREEDY_VC RESULTS ===\n\n";
-      cout << "COVER SIZE: " << C.size() << endl;
-      cout << "TIME: " << durationEdgeGreedyVC.count() << " milliseconds" << endl;
-      // cout << "DATA\t" << "LOSS\t" << "DEGREE\t" << endl;
-      // for (auto vertex : C)
-      //   cout << vertex << "\t" << G->vertexLoss(vertex) << "\t" << G->vertexDegree(vertex) << endl;
 
       auto startFastVC = high_resolution_clock::now();
 
       C = fastVC(G, C, 50);
 
+      cFast = C;
+
       auto stopFastVC = high_resolution_clock::now();
+      durationFastVC += duration_cast<milliseconds>(stopFastVC - startFastVC);
 
-      auto durationFastVC = duration_cast<milliseconds>(stopFastVC - startFastVC);
-
-      cout << "\n\n\t=== FAST_VC RESULTS ===\n\n";
-      cout << "COVER SIZE: " << C.size() << endl;
-      cout << "TIME: " << durationFastVC.count() << " milliseconds" << endl;
-      // cout << "DATA\t" << "LOSS\t" << "GAIN\t" << "AGE\t" << "DEGREE\t" << endl;
-      // for (auto vertex : C)
-      //   cout << vertex << "\t" << G->vertexLoss(vertex) << "\t" << G->vertexGain(vertex) << "\t" << G->vertexAge(vertex) << "\t" << G->vertexDegree(vertex) << endl;
-    
       G->clearGraph();
     }
+
+    durationEdgeGreedyVC /= 3;
+    durationFastVC /= 3;
+
+    string fileName = argv[1];
+    std::replace( fileName.begin(), fileName.end(), '/', '-');
+    string fileFolder = "log-files";
+    auto arg = fileFolder + "/" + fileName + ".log";
+    cout << arg << endl;
+
+    std::ofstream file(arg);
+
+    cout << "\n\n\t=== EDGE_GREEDY_VC RESULTS ===\n\n";
+    file << "\n\n\t=== EDGE_GREEDY_VC RESULTS ===\n\n";
+    cout << "COVER SIZE: " << cEdgeGreedy.size() << endl;
+    file << "COVER SIZE: " << cEdgeGreedy.size() << endl;
+    cout << "TIME: " << durationEdgeGreedyVC.count() << " milliseconds" << endl;
+    file << "TIME: " << durationEdgeGreedyVC.count() << " milliseconds" << endl;
+    cout << "DATA\t" << "DEGREE\t" << endl;
+    file << "DATA\t" << "DEGREE\t" << endl;
+    for (auto vertex : cEdgeGreedy) {
+      cout << vertex << "\t" << G->vertexDegree(vertex) << endl;
+      file << vertex << "\t" << G->vertexDegree(vertex) << endl;
+    }
+
+    cout << "\n\n\t=== FAST_VC RESULTS ===\n\n";
+    file << "\n\n\t=== FAST_VC RESULTS ===\n\n";
+    cout << "COVER SIZE: " << cFast.size() << endl;
+    file << "COVER SIZE: " << cFast.size() << endl;
+    cout << "TIME: " << durationFastVC.count() << " milliseconds" << endl;
+    file << "TIME: " << durationFastVC.count() << " milliseconds" << endl;
+    cout << "DATA\t" << "DEGREE\t" << endl;
+    file << "DATA\t" << "DEGREE\t" << endl;
+    for (auto vertex : cFast) {
+      cout << vertex << "\t" << G->vertexDegree(vertex) << endl;
+      file << vertex << "\t" << G->vertexDegree(vertex) << endl;
+    }
+
+    file.close();
+
     delete G;
 
     return 0;
