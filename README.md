@@ -1,6 +1,6 @@
-# Trabalho - 3ª Unidade
+# Trabalho - 2ª Unidade
 
-Repositório contendo as especificações do Trabalho da 3ª unidade da disciplina de Grafos.
+Repositório contendo as especificações do Trabalho da 2ª unidade da disciplina de PAA.
 
 # Pastas e especificações
 
@@ -19,7 +19,7 @@ Repositório contendo as especificações do Trabalho da 3ª unidade da discipli
 
 # Como executar o projeto
   ```
-  ./build/graf test-cases/caminho-para-o-arquivo-de-testes-desejado
+  ./build/paa test-cases/caminho-para-o-arquivo-de-testes-desejado
   ```
 ## Especificação
   O projeto é compilado usando as seguintes "flags" de compilação

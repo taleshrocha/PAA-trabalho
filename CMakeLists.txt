@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(trab_grafos VERSION 0.1 LANGUAGES CXX)
+project(trab_paa VERSION 0.1 LANGUAGES CXX)
 
 # Set C++17 
 set (CMAKE_CXX_STANDARD 17)
@@ -25,10 +25,10 @@ add_link_options(-fsanitize=address,undefined)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 ## Cria um executável com nome "graf".
-add_executable(graf)
+add_executable(paa)
 
 target_sources(
-  graf
+  paa
   PRIVATE
     src/main.cpp
 )
