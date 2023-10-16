@@ -1,4 +1,4 @@
-#include "../include/Graph.h"
+#include "../include/RCPSP.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -7,272 +7,206 @@
 #include <set>
 #include <chrono>
 #include <stdlib.h>
+#include <algorithm> 
 
-using std::cout;
-using std::endl;
-using std::set;
-using std::vector;
-using std::pair;
-using std::make_pair;
-using std::string;
-using sc::Graph;
-
+using sc::RCPSP;
 using namespace std::chrono;
+using namespace std;
 
-set<int> edgeGreedyVC(Graph<int>* G) {
+struct ProjectInformation {
+  int projectNumber;
+  int numJobs;
+  int relativeDate;
+  int dueDate;
+  int tardinessCost;
+  int mpmTime;
+};
 
-  set<int> C;
+void readInputFile(std::ifstream& inputFile, RCPSP<int>& G, ProjectInformation& projectInfo, std::vector<int>& resourceAvailabilities) {
+  std::string line;
+  int a, b, c;
 
-  // For each vertex in G.
-  for (auto vertex = G->begin(); vertex != G->end(); ++vertex) {
-    // For each edge of "vertex" in G.
-    for (auto edge = (*vertex)->next; edge != nullptr; edge = edge->next) {
+  while (getline(inputFile, line)) {
+    if (line.empty())
+      continue;
 
-      // If the edge is uncovered.
-      if (!edge->isCovered) {
+    if (line.find("PROJECT INFORMATION:") != string::npos) {
+      getline(inputFile, line);
 
-        // Add the endpoint of the edge (the vertex) with the higher degree into C.
-        if (G->vertexDegree((*vertex)->data) >= G->vertexDegree(edge->data))
-          C.insert((*vertex)->data);
+      inputFile >> projectInfo.projectNumber >> projectInfo.numJobs
+                  >> projectInfo.relativeDate >> projectInfo.dueDate
+                  >> projectInfo.tardinessCost >> projectInfo.mpmTime;
 
-        else
-          C.insert(edge->data);
-
-        G->coverEdge(make_pair((*vertex)->data, edge->data));
+    } else if (line.find("PRECEDENCE RELATIONS:") != string::npos) {
+      getline(inputFile, line);
+      while (getline(inputFile, line) && line.find("*") == string::npos) {
+          istringstream iss(line);
+          iss >> a >> b >> c;
+          for (int i = 0; i < c; i++) {
+            iss >> b;
+            // Populates the graph.
+            G.addEdge(make_pair(a, b));
+          }
       }
+    } else if (line.find("REQUESTS/DURATIONS:") != string::npos) {
+      getline(inputFile, line);
+      getline(inputFile, line);
+      while (getline(inputFile, line) && line.find("*") == string::npos) {
+          istringstream iss(line);
+          iss >> a >> b >> c;
+          G.setDuration(a, c);
+          auto aux = G.findVertex(a);
+          for (int i = 0; i < 4; i++)
+            iss >> (*aux)->resourcesRequired[i];
+      }
+    } else if (line.find("RESOURCEAVAILABILITIES:") != string::npos) {
+      getline(inputFile, line);
+      getline(inputFile, line);
+      istringstream iss(line);
+      for (int i = 0; i < 4; i++)
+            iss >> resourceAvailabilities[i];
     }
   }
-
-  // For each vertex in G.
-  for (auto vertex = G->begin(); vertex != G->end(); ++vertex) {
-    // For each edge of "vertex" in G.
-    for (auto edge = (*vertex)->next; edge != nullptr; edge = edge->next) {
-
-      if (!edge->alreadySeen) {
-
-        // If only one vertex of the edge belongs to C.
-        if (C.find((*vertex)->data) != C.end() && C.find(edge->data) == C.end())
-          G->updateLoss((*vertex)->data, 1);
-
-        else if (C.find((*vertex)->data) == C.end() && C.find(edge->data) != C.end())
-          G->updateLoss(edge->data, 1);
-
-        // To avoid counting the same edge two times. And avoid a vertex to update loss more than one time.
-        G->seeEdge(make_pair((*vertex)->data, edge->data));
-      }
-    }
-  }
-
-  // For each vertex in G.
-  auto vertex = C.begin();
-  while (vertex != C.end()) {
-    if (G->vertexLoss(*vertex) == 0) {
-      G->updateLossNeighbors(*vertex, 1, C);
-      vertex = C.erase(vertex);
-    } else
-      vertex++;
-  }
-  return C;
 }
 
-set<int> fastVC(Graph<int>* G, set<int> C, int iterations) {
+vector<vector<int>> scheduleTasks(RCPSP<int>* G, vector<int> resources) {
+  vector<vector<int>> schedule; //(G->size(), vector<int>(G->totalDuration(), 0));
+  vector<int> availableTasks = G->availableTasks();
+  vector<int> runningTasks;
+  int numPeriods = 0;
 
-  set<int> C_;
+  vector<int> durations = G->getDurations();
+  vector<int> inDegrees = G->getInDegrees();
 
-  while (iterations > 0) {
+  while (!availableTasks.empty() || !runningTasks.empty()) {
+    vector<int> temp;
 
-    // For each vertex in G.
-    for (auto vertex = G->begin(); vertex != G->end(); ++vertex) {
-      if (C.find((*vertex)->data) == C.end()) { // If the vertex is not in the cover.
-        G->updateAge((*vertex)->data, 1);
+    auto it = runningTasks.begin();
+    while (it != runningTasks.end()) {
+      durations[*it-1]--;
+      if (durations[*it-1] > 0) {
+        //schedule[*it-1][numPeriods] = 1;
+        temp.push_back(*it);
+        it++;
+      } else {
+        G->taskCompleted(*it, availableTasks, inDegrees);
+        auto aux = G->findVertex(*it);
+        for (int i = 0; i < 4; i++)
+          resources[i] += (*aux)->resourcesRequired[i];
+
+        it = runningTasks.erase(it);
       }
     }
 
-    //cout << "ITERATION: " << iterations << endl;
+    auto it2 = availableTasks.begin();
+    while (it2 != availableTasks.end()) {
+      if (G->isTaskAvailable(*it2, resources)) {
+        auto aux = G->findVertex(*it2);
+        for (int i = 0; i < 4; i++)
+          resources[i] -= (*aux)->resourcesRequired[i];
 
-    //cout << G->toString();
-    //cout << "\n\n";
-
-    // If C covers all edges of G.
-    if (G->isVertexCover()) { // If it covers all edges, them the gain of all vertex is 0.
-                              //cout << "===== IS VERTEX COVER =====\n\n" << endl;
-      C_ = C;
-      auto minLossVertex = G->getMinimumLossVertex(C);
-      C.erase((*minLossVertex)->data);
-
-      // Uncover all edges that don't have a vertex covering it.
-      for (auto edge = (*minLossVertex)->next; edge != nullptr; edge = edge->next) {
-        if (C.find(edge->data) == C.end()) {
-          G->uncoverEdge(make_pair((*minLossVertex)->data, edge->data));
-        }
-      }
-      //cout << "R: " << (*minLossVertex)->data << endl;
-      // Updates the loss and the gain. The gain becomes the loss and the loss is going to 0.
-      G->updateGain((*minLossVertex)->data, (*minLossVertex)->loss);
-      G->updateGainNeighbors((*minLossVertex)->data, 1, C);
-      G->updateLossNeighbors((*minLossVertex)->data, 1, C);
-      G->updateLoss((*minLossVertex)->data, -(*minLossVertex)->loss); // Loss goes to 0.
-
-      G->updateAge((*minLossVertex)->data, -(*minLossVertex)->age);
-      continue;
+        //schedule[*it2-1][numPeriods] += 1;
+        temp.push_back(*it2);
+        runningTasks.push_back(*it2);
+        it2 = availableTasks.erase(it2);
+      } else
+        it2++;
     }
-
-    // Choose a vertex to remove and remove it.
-    auto removeVertex = G->getRandomMinimumLossVertex(C);
-    C.erase((*removeVertex)->data);
-
-    // Uncover all edges of the removed vertex.
-    for (auto edge = (*removeVertex)->next; edge != nullptr; edge = edge->next) {
-      if (C.find(edge->data) == C.end()) {
-        G->uncoverEdge(make_pair((*removeVertex)->data, edge->data));
-      }
-    }
-
-    // Updates the loss and the gain. The gain becomes the loss and the loss is going to 0.
-    G->updateGain((*removeVertex)->data, (*removeVertex)->loss);
-    G->updateGainNeighbors((*removeVertex)->data, 1, C);
-    G->updateLoss((*removeVertex)->data, -(*removeVertex)->loss); // Loss goes to 0.
-    G->updateLossNeighbors((*removeVertex)->data, 1, C);
-    //cout << "R: " << (*removeVertex)->data << endl;
-
-    G->updateAge((*removeVertex)->data, -(*removeVertex)->age);
-
-    int firstVertexValue = 0;
-    int secondVertexValue = 0;
-    auto randomUncoveredEdge = G->getRandomUncoveredEdge(&firstVertexValue, &secondVertexValue); // The first uncovered edge it finds.
-
-    //  Breaks ties in favor of the older one.
-    auto greaterGainVertex = G->greaterGainEndpoint(randomUncoveredEdge.first, randomUncoveredEdge.second); 
-
-    C.insert((*greaterGainVertex)->data);
-
-    // Updates the loss and the gain. The gain becomes the loss and the loss is going to 0.
-    G->updateLoss((*greaterGainVertex)->data, (*greaterGainVertex)->gain);
-    G->updateGainNeighbors((*greaterGainVertex)->data, -1, C);
-    G->updateGain((*greaterGainVertex)->data, -(*greaterGainVertex)->gain); // Gain goes to 0.
-    G->updateLossNeighbors((*greaterGainVertex)->data, -1, C); // Loss goes to 0.
-                                                               //cout << "I: " << (*greaterGainVertex)->data << endl;
-
-                                                               // IMPORTANT: Don't change the order! This becomes after the gain and loss update.
-                                                               // Cover all edges of this vertex.
-    for (auto edge = (*greaterGainVertex)->next; edge != nullptr; edge = edge->next)
-      G->coverEdge(make_pair((*greaterGainVertex)->data, edge->data));
-
-    iterations--;
+    numPeriods++;
+    schedule.push_back(temp);
   }
-
-  return C_;
+  
+  return schedule;
 }
 
 int main(int argc, char* argv[]) {
   if (argc < 2) {
-    cout << "Error: Test case file not informed!" << endl;
+    cerr << "Error: Test case file not informed!" << endl;
     return 1;
   }
 
-  std::ifstream infile(argv[1]);
+  std::ifstream inputFile(argv[1]);
   srand (time(NULL));
 
-  if (!infile) {
-    cout << "Error: Could not open file '" << argv[1] << "' or it doesn't exist!" << endl;
+  if (!inputFile) {
+    cerr << "Error: Could not open file '" << argv[1] << "' or it doesn't exist!" << endl;
     return 2;
   }
 
-  else {
+  try {
+        RCPSP<int> G;
+        ProjectInformation projectInfo;
+        vector<int> resourceAvailabilities(4, 0);
 
-    //Graph<int> G;
-    Graph<int>* G = new Graph<int>;
+        // Read input
+        readInputFile(inputFile, G, projectInfo, resourceAvailabilities);
 
-    std::string line;
-    int a, b;
-    char c;
+        // Schedule tasks
+        vector<vector<int>> S = scheduleTasks(&G, resourceAvailabilities);
 
-    // Reads the file.
-    while (std::getline(infile, line)) {
+        // Output the results
+        cout << G.toString() << endl;
 
-      std::istringstream iss(line);
-
-      if (!line.empty()) {
-        // TODO: see if that works
-        //iss >> a >> b;
-        iss >> a >> c >> b;
-        // Populates the graph.
-        G->addEdge(make_pair(a, b));
-      }
+        cout << "Task schedule considering resource constraints and precedence relations:" << endl;
+        for (auto i = 0; i < S.size(); i++) {
+            cout << "Running tasks [numPeriod=" << i + 1 << "]: {";
+            for (auto j = 0; j < S[i].size(); j++) {
+              if (j == S[i].size()-1) {
+                cout << S[i][j];
+                break;
+              }
+              cout << S[i][j] << ", ";
+            }
+            cout << "}" << endl;
+        }
+    } catch (const std::exception& e) {
+        cerr << "An exception occurred: " << e.what() << endl;
+        return 1;
     }
 
-    cout << "GRAPH SIZE: " << G->size() << endl;
+    // milliseconds durationFastVC(0);
+    // milliseconds durationEdgeGreedyVC(0);
 
-    milliseconds durationFastVC(0);
-    milliseconds durationEdgeGreedyVC(0);
+    // set<int> cEdgeGreedy;
+    // set<int> cFast;
+    // for (size_t i = 0; i < 3; i++)
+    // {
+    //   auto startEdgeGreedyVC = high_resolution_clock::now();
 
-    set<int> cEdgeGreedy;
-    set<int> cFast;
-    for (size_t i = 0; i < 3; i++)
-    {
-      auto startEdgeGreedyVC = high_resolution_clock::now();
+    //   set<int> C = edgeGreedyVC(G);
 
-      set<int> C = edgeGreedyVC(G);
+    //   cEdgeGreedy = C;
 
-      cEdgeGreedy = C;
+    //   auto stopEdgeGreedyVC = high_resolution_clock::now();
+    //   durationEdgeGreedyVC += duration_cast<milliseconds>(stopEdgeGreedyVC - startEdgeGreedyVC);
+    // }
 
-      auto stopEdgeGreedyVC = high_resolution_clock::now();
-      durationEdgeGreedyVC += duration_cast<milliseconds>(stopEdgeGreedyVC - startEdgeGreedyVC);
+    // durationEdgeGreedyVC /= 3;
 
+    // string fileName = argv[1];
+    // std::replace( fileName.begin(), fileName.end(), '/', '-');
+    // string fileFolder = "log-files";
+    // auto arg = fileFolder + "/" + fileName + ".log";
+    // cout << arg << endl;
 
-      auto startFastVC = high_resolution_clock::now();
+    // std::ofstream file(arg);
 
-      C = fastVC(G, C, 50);
+    // cout << "\n\n\t=== EDGE_GREEDY_VC RESULTS ===\n\n";
+    // file << "\n\n\t=== EDGE_GREEDY_VC RESULTS ===\n\n";
+    // cout << "COVER SIZE: " << cEdgeGreedy.size() << endl;
+    // file << "COVER SIZE: " << cEdgeGreedy.size() << endl;
+    // cout << "TIME: " << durationEdgeGreedyVC.count() << " milliseconds" << endl;
+    // file << "TIME: " << durationEdgeGreedyVC.count() << " milliseconds" << endl;
+    // cout << "DATA\t" << "DEGREE\t" << endl;
+    // file << "DATA\t" << "DEGREE\t" << endl;
+    // for (auto vertex : cEdgeGreedy) {
+    //   cout << vertex << "\t" << G->vertexDegree(vertex) << endl;
+    //   file << vertex << "\t" << G->vertexDegree(vertex) << endl;
+    // }
 
-      cFast = C;
+    // file.close();
 
-      auto stopFastVC = high_resolution_clock::now();
-      durationFastVC += duration_cast<milliseconds>(stopFastVC - startFastVC);
-
-      G->clearGraph();
-    }
-
-    durationEdgeGreedyVC /= 3;
-    durationFastVC /= 3;
-
-    string fileName = argv[1];
-    std::replace( fileName.begin(), fileName.end(), '/', '-');
-    string fileFolder = "log-files";
-    auto arg = fileFolder + "/" + fileName + ".log";
-    cout << arg << endl;
-
-    std::ofstream file(arg);
-
-    cout << "\n\n\t=== EDGE_GREEDY_VC RESULTS ===\n\n";
-    file << "\n\n\t=== EDGE_GREEDY_VC RESULTS ===\n\n";
-    cout << "COVER SIZE: " << cEdgeGreedy.size() << endl;
-    file << "COVER SIZE: " << cEdgeGreedy.size() << endl;
-    cout << "TIME: " << durationEdgeGreedyVC.count() << " milliseconds" << endl;
-    file << "TIME: " << durationEdgeGreedyVC.count() << " milliseconds" << endl;
-    cout << "DATA\t" << "DEGREE\t" << endl;
-    file << "DATA\t" << "DEGREE\t" << endl;
-    for (auto vertex : cEdgeGreedy) {
-      cout << vertex << "\t" << G->vertexDegree(vertex) << endl;
-      file << vertex << "\t" << G->vertexDegree(vertex) << endl;
-    }
-
-    cout << "\n\n\t=== FAST_VC RESULTS ===\n\n";
-    file << "\n\n\t=== FAST_VC RESULTS ===\n\n";
-    cout << "COVER SIZE: " << cFast.size() << endl;
-    file << "COVER SIZE: " << cFast.size() << endl;
-    cout << "TIME: " << durationFastVC.count() << " milliseconds" << endl;
-    file << "TIME: " << durationFastVC.count() << " milliseconds" << endl;
-    cout << "DATA\t" << "DEGREE\t" << endl;
-    file << "DATA\t" << "DEGREE\t" << endl;
-    for (auto vertex : cFast) {
-      cout << vertex << "\t" << G->vertexDegree(vertex) << endl;
-      file << vertex << "\t" << G->vertexDegree(vertex) << endl;
-    }
-
-    file.close();
-
-    delete G;
+    // delete G;
 
     return 0;
-  }
 }
