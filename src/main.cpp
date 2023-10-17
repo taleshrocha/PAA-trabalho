@@ -73,7 +73,7 @@ vector<vector<int>> scheduleTasks(RCPSP<int>* G, vector<int> resources) {
   vector<vector<int>> schedule; //(G->size(), vector<int>(G->totalDuration(), 0));
   vector<int> availableTasks = G->availableTasks();
   vector<int> runningTasks;
-  int numPeriods = 0;
+  //int numPeriods = 0;
 
   vector<int> durations = G->getDurations();
   vector<int> inDegrees = G->getInDegrees();
@@ -112,8 +112,9 @@ vector<vector<int>> scheduleTasks(RCPSP<int>* G, vector<int> resources) {
       } else
         it2++;
     }
-    numPeriods++;
-    schedule.push_back(temp);
+    //numPeriods++;
+    if (!availableTasks.empty() || !runningTasks.empty())
+      schedule.push_back(temp);
   }
   
   return schedule;
@@ -141,12 +142,20 @@ int main(int argc, char* argv[]) {
         // Read input
         readInputFile(inputFile, G, projectInfo, resourceAvailabilities);
 
+        microseconds durationScheduleTasks(0);
+        auto startScheduleTasks = high_resolution_clock::now();
+
         // Schedule tasks
         vector<vector<int>> S = scheduleTasks(&G, resourceAvailabilities);
 
-        // Output the results
-        cout << G.toString() << endl;
+        auto stopScheduleTasks = high_resolution_clock::now();
+        durationScheduleTasks = duration_cast<microseconds>(stopScheduleTasks - startScheduleTasks);
 
+        // Output the results
+        //cout << G.toString() << endl;
+
+        cout << "Makespan: " << S.size() << endl;
+        cout << "Time: " << durationScheduleTasks.count() << " microseconds" << endl;
         cout << "Task schedule considering resource constraints and precedence relations:" << endl;
         for (auto i = 0; i < S.size(); i++) {
             cout << "Running tasks [numPeriod=" << i + 1 << "]: {";
@@ -163,25 +172,6 @@ int main(int argc, char* argv[]) {
         cerr << "An exception occurred: " << e.what() << endl;
         return 1;
     }
-
-    // milliseconds durationFastVC(0);
-    // milliseconds durationEdgeGreedyVC(0);
-
-    // set<int> cEdgeGreedy;
-    // set<int> cFast;
-    // for (size_t i = 0; i < 3; i++)
-    // {
-    //   auto startEdgeGreedyVC = high_resolution_clock::now();
-
-    //   set<int> C = edgeGreedyVC(G);
-
-    //   cEdgeGreedy = C;
-
-    //   auto stopEdgeGreedyVC = high_resolution_clock::now();
-    //   durationEdgeGreedyVC += duration_cast<milliseconds>(stopEdgeGreedyVC - startEdgeGreedyVC);
-    // }
-
-    // durationEdgeGreedyVC /= 3;
 
     // string fileName = argv[1];
     // std::replace( fileName.begin(), fileName.end(), '/', '-');

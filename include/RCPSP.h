@@ -23,6 +23,7 @@ using std::endl;
 using std::stringstream;
 using std::pair;
 using std::make_pair;
+//using std::numeric_limits;
 
 namespace sc {
 
@@ -111,9 +112,9 @@ class RCPSP {
       adjacencyList.push_back(new Vertex(values.first, n, 0));
 
     auto temp2 = findVertex(values.second);
-    if (temp2 != end())
+    if (temp2 != end()) 
       (*temp2)->inDegree++;
-    else
+    else 
       adjacencyList.push_back(new Vertex(values.second, nullptr, 1));
   }
 

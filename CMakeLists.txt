@@ -2,14 +2,14 @@ cmake_minimum_required(VERSION 3.5)
 project(trab_paa VERSION 0.1 LANGUAGES CXX)
 
 # Set C++17 
-set (CMAKE_CXX_STANDARD 17)
+set (CMAKE_CXX_STANDARD 11)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Set the compiling flags
 add_compile_options(
   #-g
   -Wall
-  -Werror
+  #-Werror
   -Wextra
   -Wpedantic
   -ansi
