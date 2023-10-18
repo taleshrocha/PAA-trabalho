@@ -11,16 +11,21 @@ Repositório contendo as especificações do Trabalho da 2ª unidade da discipli
 - ``build`` - Contém o ``Makefile``, o binário ``graf`` e todos os outros arquivos que o ``cmake`` cria.
 
 # Como compilar o projeto
+Na pasta raiz do projeto, execute:
 
   ```
-  cmake -B build
-  cmake --build build
+  g++ src/main.cpp -o paa
   ```
 
 # Como executar o projeto
+Na pasta raiz do projeto, execute:
+
   ```
-  ./build/paa test-cases/caminho-para-o-arquivo-de-testes-desejado
+  ./paa test-cases/caminho-para-o-arquivo-de-testes-desejado
   ```
+# Arquivos de log
+Arquivos de log serão criados automaticamente na pasta log-files. Certifique-se de que esta pasta está presente na raiz do projeto.
+
 ## Especificação
   O projeto é compilado usando as seguintes "flags" de compilação
   -Wall
