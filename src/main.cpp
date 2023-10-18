@@ -151,52 +151,50 @@ int main(int argc, char* argv[]) {
         auto stopScheduleTasks = high_resolution_clock::now();
         durationScheduleTasks = duration_cast<microseconds>(stopScheduleTasks - startScheduleTasks);
 
-        // Output the results
+        /*
+          Output the results
+        */
         //cout << G.toString() << endl;
 
+     string fileName = argv[1];
+     std::replace( fileName.begin(), fileName.end(), '/', '-');
+     string fileFolder = "log-files";
+     auto arg = fileFolder + "/" + fileName + ".log";
+     cout << arg << endl;
+
+     std::ofstream file(arg);
+
         cout << "Makespan: " << S.size() << endl;
+        file << "Makespan: " << S.size() << endl;
+
         cout << "Time: " << durationScheduleTasks.count() << " microseconds" << endl;
+        file << "Time: " << durationScheduleTasks.count() << " microseconds" << endl;
+
         cout << "Task schedule considering resource constraints and precedence relations:" << endl;
+        file << "Task schedule considering resource constraints and precedence relations:" << endl;
+
         for (auto i = 0; i < S.size(); i++) {
             cout << "Running tasks [numPeriod=" << i + 1 << "]: {";
+            file << "Running tasks [numPeriod=" << i + 1 << "]: {";
             for (auto j = 0; j < S[i].size(); j++) {
               if (j == S[i].size()-1) {
                 cout << S[i][j];
+                file << S[i][j];
                 break;
               }
               cout << S[i][j] << ", ";
+              file << S[i][j] << ", ";
             }
             cout << "}" << endl;
+            file << "}" << endl;
         }
+
+     file.close();
+
     } catch (const std::exception& e) {
         cerr << "An exception occurred: " << e.what() << endl;
         return 1;
     }
-
-    // string fileName = argv[1];
-    // std::replace( fileName.begin(), fileName.end(), '/', '-');
-    // string fileFolder = "log-files";
-    // auto arg = fileFolder + "/" + fileName + ".log";
-    // cout << arg << endl;
-
-    // std::ofstream file(arg);
-
-    // cout << "\n\n\t=== EDGE_GREEDY_VC RESULTS ===\n\n";
-    // file << "\n\n\t=== EDGE_GREEDY_VC RESULTS ===\n\n";
-    // cout << "COVER SIZE: " << cEdgeGreedy.size() << endl;
-    // file << "COVER SIZE: " << cEdgeGreedy.size() << endl;
-    // cout << "TIME: " << durationEdgeGreedyVC.count() << " milliseconds" << endl;
-    // file << "TIME: " << durationEdgeGreedyVC.count() << " milliseconds" << endl;
-    // cout << "DATA\t" << "DEGREE\t" << endl;
-    // file << "DATA\t" << "DEGREE\t" << endl;
-    // for (auto vertex : cEdgeGreedy) {
-    //   cout << vertex << "\t" << G->vertexDegree(vertex) << endl;
-    //   file << vertex << "\t" << G->vertexDegree(vertex) << endl;
-    // }
-
-    // file.close();
-
-    // delete G;
 
     return 0;
 }
