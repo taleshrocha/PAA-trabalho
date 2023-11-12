@@ -1,5 +1,5 @@
-#ifndef _Graph_H_
-#define _Graph_H_
+#ifndef _Grap_H_
+#define _Grap_H_
 
 #include <iostream>
 #include <iterator>  // bidirectional_iterator_tag
@@ -25,10 +25,10 @@ using std::pair;
 using std::make_pair;
 //using std::numeric_limits;
 
-namespace sc {
+namespace bc {
 
 template < typename T >
-class RCPSP {
+class BacktrackTree {
 
  public:
 
@@ -61,13 +61,13 @@ class RCPSP {
 
   vector<Vertex*> adjacencyList;
 
-  using iterator = typename vector<sc::RCPSP<T>::Vertex*>::iterator;
+  using iterator = typename vector<bc::BacktrackTree<T>::Vertex*>::iterator;
 
  public:
 
-  RCPSP() { /* empty */ }
+  BacktrackTree() { /* empty */ }
 
-  ~RCPSP() {
+  ~BacktrackTree() {
     for (auto vertex : adjacencyList) {
       //cout << "VERTEX: " << vertex->data << endl;
       removeAllEdges(vertex->next);
@@ -159,7 +159,7 @@ class RCPSP {
     return aux;
   }
 
-  bool hasResoucesForTask(T value, vector<int> resources) {
+  bool isTaskAvailable(T value, vector<int> resources) {
     auto aux = findVertex(value);
     for(int i = 0; i < 4; i++) {
       if((*aux)->resourcesRequired[i] > resources[i])
@@ -201,18 +201,26 @@ vector<int> getInDegrees() {
 
   string toString() {
     stringstream ss;
+    stringstream shv;
+    stringstream she;
     // For each vertex.
     for (auto vertex = this->begin(); vertex != this->end(); ++vertex) {
+      shv.clear(); 
+      for (auto t : (*vertex)->data) shv << t << ", ";
+
       ss << 
-        "VERT: " << (*vertex)->data << "\t" <<  
+        "VERT: " << shv.str() << "\t" <<  
         "IN_DEGR: " << (*vertex)->inDegree << "\t" <<
         "DURATION: " << (*vertex)->duration << "\t" << "RESOURCES: ";
       for (int i = 0; i < 4; i++)
         ss << (*vertex)->resourcesRequired[i] << "  ";
       ss << endl;
       // For each edge of "vertex".
-      for (auto edge = (*vertex)->next; edge != nullptr; edge = edge->next)
-        ss << "\t" << "EDGE: " << edge->data << endl;
+      for (auto edge = (*vertex)->next; edge != nullptr; edge = edge->next) {
+        she.clear(); 
+        for (auto t : edge->data) she << t << ", ";
+        ss << "\t" << "EDGE: " << she.str() << endl;
+      }
       ss << endl;
     }
 

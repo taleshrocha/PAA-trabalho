@@ -1,4 +1,5 @@
 #include "../include/RCPSP.h"
+#include "../include/BacktrackTree.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -10,6 +11,7 @@
 #include <algorithm> 
 
 using sc::RCPSP;
+using bc::BacktrackTree;
 using namespace std::chrono;
 using namespace std;
 
@@ -69,55 +71,77 @@ void readInputFile(std::ifstream& inputFile, RCPSP<int>& G, ProjectInformation& 
   }
 }
 
-vector<vector<int>> scheduleTasks(RCPSP<int>* G, vector<int> resources) {
-  vector<vector<int>> schedule; //(G->size(), vector<int>(G->totalDuration(), 0));
-  vector<int> availableTasks = G->availableTasks();
-  vector<int> runningTasks;
-  //int numPeriods = 0;
+vector<vector<int>> scheduleTasks(
+    RCPSP<int>* G, 
+    vector<int> resources,
+    vector<vector<int>> schedule,
+    vector<int> availableTasks,
+    vector<int> runningTasks,
+    vector<int> inDegrees,
+    vector<int> durations,
+    int level = -1
+  ) {
+    level++;
+    cout << "level: " << level << endl;
+    for (auto i = 0; i < schedule.size(); i++) {
+        cout << "Running tasks [numPeriod=" << i + 1 << "]: {";
+        for (auto j = 0; j < schedule[i].size(); j++) {
+          if (j == schedule[i].size()-1) {
+            cout << schedule[i][j];
+            break;
+          }
+          cout << schedule[i][j] << ", ";
+        }
+        cout << "}" << endl;
+    }
 
-  vector<int> durations = G->getDurations();
-  vector<int> inDegrees = G->getInDegrees();
+    vector<int> newSchedulePart;
 
-  while (!availableTasks.empty() || !runningTasks.empty()) {
-    vector<int> temp;
+    auto task = runningTasks.begin();
+    while (task != runningTasks.end()) {
+      durations[*task - 1]--;
 
-    auto it = runningTasks.begin();
-    while (it != runningTasks.end()) {
-      durations[*it-1]--;
-      if (durations[*it-1] > 0) {
-        //schedule[*it-1][numPeriods] = 1;
-        temp.push_back(*it);
-        it++;
+      if (durations[*task - 1] > 0) {
+        newSchedulePart.push_back(*task);
+        task++;
       } else {
-        G->taskCompleted(*it, availableTasks, inDegrees);
-        auto aux = G->findVertex(*it);
-        for (int i = 0; i < 4; i++)
-          resources[i] += (*aux)->resourcesRequired[i];
+        G->taskCompleted(*task, availableTasks, inDegrees);
+        auto taskVertex = G->findVertex(*task);
 
-        it = runningTasks.erase(it);
+        for (int i = 0; i < 4; i++) {
+          resources[i] += (*taskVertex)->resourcesRequired[i];
+        }
+
+        task = runningTasks.erase(task);
       }
     }
 
-    auto it2 = availableTasks.begin();
-    while (it2 != availableTasks.end()) {
-      if (G->isTaskAvailable(*it2, resources)) {
-        auto aux = G->findVertex(*it2);
-        for (int i = 0; i < 4; i++)
-          resources[i] -= (*aux)->resourcesRequired[i];
+    task = availableTasks.begin();
+    while (task != availableTasks.end()) {
+      if (G->hasResoucesForTask(*task, resources)) {
+        auto taskVertex = G->findVertex(*task);
 
-        //schedule[*it2-1][numPeriods] += 1;
-        temp.push_back(*it2);
-        runningTasks.push_back(*it2);
-        it2 = availableTasks.erase(it2);
-      } else
-        it2++;
+        for (int i = 0; i < 4; i++) {
+          resources[i] -= (*taskVertex)->resourcesRequired[i];
+        }
+
+        newSchedulePart.push_back(*task);
+        runningTasks.push_back(*task);
+        task = availableTasks.erase(task);
+
+        auto newSchedule = schedule;
+        newSchedule.push_back(newSchedulePart);
+
+        scheduleTasks(G, resources, newSchedule, availableTasks, runningTasks, 
+          inDegrees, durations, level);
+      } else {
+        task++;
+      }
     }
-    //numPeriods++;
-    if (!availableTasks.empty() || !runningTasks.empty())
-      schedule.push_back(temp);
-  }
-  
-  return schedule;
+
+    //schedule.push_back(newSchedulePart);
+
+    return schedule;
 }
 
 int main(int argc, char* argv[]) {
@@ -141,21 +165,28 @@ int main(int argc, char* argv[]) {
 
         // Read input
         readInputFile(inputFile, G, projectInfo, resourceAvailabilities);
+        /*
+        cout << G.toString() << endl;
+        return 0;
+        */
 
         microseconds durationScheduleTasks(0);
         auto startScheduleTasks = high_resolution_clock::now();
 
-        // Schedule tasks
-        vector<vector<int>> S = scheduleTasks(&G, resourceAvailabilities);
+        vector<vector<int>> S = scheduleTasks(
+            &G, 
+            resourceAvailabilities,
+            vector<vector<int>>(),
+            G.availableTasks(),
+            vector<int>(),
+            G.getInDegrees(),
+            G.getDurations()
+          );
 
         auto stopScheduleTasks = high_resolution_clock::now();
         durationScheduleTasks = duration_cast<microseconds>(stopScheduleTasks - startScheduleTasks);
 
-        /*
-          Output the results
-        */
-        //cout << G.toString() << endl;
-
+     /*
      string fileName = argv[1];
      std::replace( fileName.begin(), fileName.end(), '/', '-');
      string fileFolder = "log-files";
@@ -190,6 +221,7 @@ int main(int argc, char* argv[]) {
         }
 
      file.close();
+     */
 
     } catch (const std::exception& e) {
         cerr << "An exception occurred: " << e.what() << endl;
