@@ -95,88 +95,34 @@ vector<vector<int>> allTaskCombinations(
     vector<int> availableTasks,
     vector<int> node
   ) {
-
-    cout << endl;
-    cout << "--STATUS--" << endl;
-
-    cout << "resources: ";
-    for(auto e : resources) 
-      cout << e << ", ";
-    cout << endl;
-
-    cout << "avalilableTasks: ";
-    for(auto e : availableTasks) 
-      cout << e << ", ";
-    cout << endl;
-
-    cout << "node: ";
-    for(auto e : node) 
-      cout << e << ", ";
-    cout << endl;
-
     vector<vector<int>> solution;
-
     auto task = availableTasks.begin();
-
-    cout << "OUT WHILE" << endl;
     while (task != availableTasks.end()) {
-      cout << "IN WHILE" << endl;
-
-      cout << "OUT IF" << endl;
       if (G->hasResoucesForTask(*task, resources)) {
-        cout << "IN IF" << endl;
-
         auto newResources = resources;
         auto taskVertex = G->findVertex(*task);
+
         for (int i = 0; i < 4; i++) {
           newResources[i] -= (*taskVertex)->resourcesRequired[i];
         }
 
-
         auto newNode = node;
         newNode.push_back(*task);
-
-        cout << "newNode: ";
-        for(auto e : newNode) 
-          cout << e << ", ";
-        cout << endl;
-
         solution.push_back(newNode);
 
-        cout << "newNode: ";
-        for(auto e : newNode) 
-          cout << e << ", ";
-        cout << endl;
-
         auto newAvailableTasks = availableTasks;
-
-        cout << "newNode: ";
-        for(auto e : newNode) 
-          cout << e << ", ";
-        cout << endl;
-
-        cout << "task: " << *task << endl;
-        newAvailableTasks.erase(task);
-        cout << "task: " << *task << endl;
-
-        cout << "newNode: ";
-        for(auto e : newNode) 
-          cout << e << ", ";
-        cout << endl;
+        auto it = find(newAvailableTasks.begin(), newAvailableTasks.end(), *task);
+        if (it != newAvailableTasks.end()) {
+            newAvailableTasks.erase(it);
+        }
 
         auto partialSolution = allTaskCombinations(G, newResources, newAvailableTasks, newNode);
-
         for (auto taskList : partialSolution) {
           solution.push_back(taskList);
         }
       } 
-
       task++;
-        cout << "task: " << *task << endl;
     }
-
-    cout << "RETURN" << endl;
-    printSchedule(solution);
     return solution;
 }
 
@@ -226,6 +172,14 @@ vector<vector<int>> scheduleTasks(
     auto tasksCombinations = 
       allTaskCombinations(G, resources, availableTasks, vector<int>());
 
+    cout << "Recursos: " << resources[0] << " " << resources[1] << " " << resources[2] << " " << resources[3] << endl;
+    for(auto i : tasksCombinations){
+      cout << "Comb {";
+      for(auto j : i){
+        cout << j << ", ";
+      }
+      cout << "}" << endl;
+    }
     vector<vector<int>> newSchedule = schedule;
     vector<int> newRunningTasks, newAvailableTasks, newResources;
 
