@@ -92,37 +92,41 @@ void printSchedule(vector<vector<int>> schedule) {
 vector<vector<int>> allTaskCombinations(
     RCPSP<int>* G, 
     vector<int> resources,
-    vector<int> availableTasks
+    vector<int> availableTasks,
+    vector<int> node = {}
   ) {
 
-    vector<vector<int>> allTaskCombinations;
+    vector<vector<int>> solution;
 
     auto task = availableTasks.begin();
     while (task != availableTasks.end()) {
 
-      // Warning Pegando apenas tasks uma por uma
       if (G->hasResoucesForTask(*task, resources)) {
-        //auto taskVertex = G->findVertex(*task);
 
-        /*
+        auto newResources = resources;
+        auto taskVertex = G->findVertex(*task);
         for (int i = 0; i < 4; i++) {
-          resources[i] -= (*taskVertex)->resourcesRequired[i];
+          newResources[i] -= (*taskVertex)->resourcesRequired[i];
         }
-        */
 
-        vector<int> taskCombination;
-        taskCombination.push_back(*task);
 
-        task = availableTasks.erase(task);
+        auto newNode = node;
+        newNode.push_back(*task);
+        solution.push_back(newNode);
 
-        allTaskCombinations.push_back(taskCombination);
-      //  break;
-      } else {
-        task++;
-      }
+        auto newAvailableTasks = availableTasks;
+        newAvailableTasks.erase(task);
+
+        auto partialSolution = allTaskCombinations(G, newResources, newAvailableTasks, newNode);
+        for (auto taskList : partialSolution) {
+          solution.push_back(taskList);
+        }
+      } 
+
+      task++;
     }
 
-    return allTaskCombinations;
+    return solution;
 }
 
 vector<vector<int>> scheduleTasks(
@@ -142,8 +146,8 @@ vector<vector<int>> scheduleTasks(
 
     // Caso base
     if (availableTasks.empty() && runningTasks.empty()) {
-      cout << "!!!! FOUND SOLUTION !!!! - " << level << endl;
-      printSchedule(schedule);
+      //cout << "!!!! FOUND SOLUTION !!!! - " << level << endl;
+      //printSchedule(schedule);
       return schedule;
     }
 
