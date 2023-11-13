@@ -141,10 +141,9 @@ vector<vector<int>> scheduleTasks(
   ) {
     level++;
 
-    //cout << "SCHEDULE - " << level << endl;
-    //printSchedule(schedule);
-
-    // Caso base
+    // cout << "Resources: " << resources[0] << " " << resources[1] << " " << resources[2] << " " << resources[3];
+    // cout << endl << level;
+    // Caso Base
     if (availableTasks.empty() && runningTasks.empty()) {
       //cout << "!!!! FOUND SOLUTION !!!! - " << level << endl;
       //printSchedule(schedule);
@@ -153,6 +152,7 @@ vector<vector<int>> scheduleTasks(
 
     vector<int> newSchedulePart;
     vector<vector<int>> bestSchedule;
+    vector<int> newInDegrees = inDegrees;
 
     // Atualiza as tarefas que estão executando
     auto task = runningTasks.begin();
@@ -163,7 +163,7 @@ vector<vector<int>> scheduleTasks(
         newSchedulePart.push_back(*task);
         task++;
       } else {
-        G->taskCompleted(*task, availableTasks, inDegrees);
+        G->taskCompleted(*task, availableTasks, newInDegrees);
         auto taskVertex = G->findVertex(*task);
 
         for (int i = 0; i < 4; i++) {
@@ -177,9 +177,6 @@ vector<vector<int>> scheduleTasks(
     auto tasksCombinations = 
       allTaskCombinations(G, resources, availableTasks);
 
-    //cout << "-- TASKCOMBINATION --" << endl;
-    //printSchedule(tasksCombinations);
-
     vector<vector<int>> newSchedule = schedule;
     vector<int> newRunningTasks, newAvailableTasks;
 
@@ -191,20 +188,16 @@ vector<vector<int>> scheduleTasks(
       for (auto task : newSchedulePart) {
         aux.push_back(task);
       }
+
+      std::sort(aux.begin(), aux.end());
+      aux.erase(std::unique(aux.begin(), aux.end()), aux.end());
+
       newSchedule.push_back(aux);
       return scheduleTasks(G, resources, newSchedule, availableTasks, 
-      runningTasks, inDegrees, durations, level);
+      runningTasks, newInDegrees, durations, level);
     }
 
     for (vector<int> taskCombination : tasksCombinations) {
-      //cout << "BEGIN FOR" << endl;
-
-      //cout << "taskCombination1: ";
-      //for (auto task2 : taskCombination) 
-      //  cout << task2 << ", ";
-      //cout << ". Size: " << taskCombination.size();
-      //cout << endl;
-
       newRunningTasks = runningTasks;
       newSchedule = schedule;
       newAvailableTasks = availableTasks;
@@ -212,56 +205,37 @@ vector<vector<int>> scheduleTasks(
       // Colocar cada uma das tarefas para executar nesse estado
       auto task = taskCombination.begin();
       while (task != taskCombination.end()) {
-
-        //cout << "BEGIN SET TASK: " << *task << ". ON LEVEL: " << level << endl;
         newRunningTasks.push_back(*task);
 
-        /*
-        for (auto task2 : runningTasks) 
-          cout << task2 << ", ";
-        cout << endl;
-        */
+        auto taskVertex = G->findVertex(*task);
+        for (int i = 0; i < 4; i++) {
+          resources[i] -= (*taskVertex)->resourcesRequired[i];
+        }
         
-        //newAvailableTasks.erase(task);
         auto it = std::find(newAvailableTasks.begin(), newAvailableTasks.end(), *task);
         if (it != newAvailableTasks.end()) {
             newAvailableTasks.erase(it);
         }
 
         task++;
-        //cout << "END SET TASK: " << *task << ". ON LEVEL: " << level << endl;
       }
-
-      //cout << "BEGIN ADD TO SCHEDULE ON LEVEL: " << level << endl;
-
-      //cout << "taskCombination2: ";
-      //for (auto task2 : taskCombination) 
-      //  cout << task2 << ", ";
-      //cout << ". Size: " << taskCombination.size();
-      //cout << endl;
 
       auto aux = taskCombination;
       for (auto task : newSchedulePart) {
         aux.push_back(task);
       }
+
+      std::sort(aux.begin(), aux.end());
+      aux.erase(std::unique(aux.begin(), aux.end()), aux.end());
+
       newSchedule.push_back(aux);
-
-      //cout << "END ADD TO SCHEDULE ON LEVEL: " << level << endl;
-
-      //cout << "BEGIN BACKATRACK - " << level << endl;
       
-
       auto backtrackSchedule = scheduleTasks(G, resources, newSchedule, newAvailableTasks, 
-      newRunningTasks, inDegrees, durations, level);
-
-      //cout << "END BACKATRACK - " << level << endl;
+      newRunningTasks, newInDegrees, durations, level);
       
       if(bestSchedule.empty() || backtrackSchedule.size() < bestSchedule.size()) {
         bestSchedule = backtrackSchedule;
-        //printSchedule(backtrackSchedule);
       }
-
-      //cout << "END FOR" << endl;
     }
 
     return bestSchedule;
