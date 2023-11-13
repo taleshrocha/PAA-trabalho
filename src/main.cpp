@@ -92,37 +92,92 @@ void printSchedule(vector<vector<int>> schedule) {
 vector<vector<int>> allTaskCombinations(
     RCPSP<int>* G, 
     vector<int> resources,
-    vector<int> availableTasks
+    vector<int> availableTasks,
+    vector<int> node
   ) {
 
-    vector<vector<int>> allTaskCombinations;
+    cout << endl;
+    cout << "--STATUS--" << endl;
+
+    cout << "resources: ";
+    for(auto e : resources) 
+      cout << e << ", ";
+    cout << endl;
+
+    cout << "avalilableTasks: ";
+    for(auto e : availableTasks) 
+      cout << e << ", ";
+    cout << endl;
+
+    cout << "node: ";
+    for(auto e : node) 
+      cout << e << ", ";
+    cout << endl;
+
+    vector<vector<int>> solution;
 
     auto task = availableTasks.begin();
+
+    cout << "OUT WHILE" << endl;
     while (task != availableTasks.end()) {
+      cout << "IN WHILE" << endl;
 
-      // Warning Pegando apenas tasks uma por uma
+      cout << "OUT IF" << endl;
       if (G->hasResoucesForTask(*task, resources)) {
-        //auto taskVertex = G->findVertex(*task);
+        cout << "IN IF" << endl;
 
-        /*
+        auto newResources = resources;
+        auto taskVertex = G->findVertex(*task);
         for (int i = 0; i < 4; i++) {
-          resources[i] -= (*taskVertex)->resourcesRequired[i];
+          newResources[i] -= (*taskVertex)->resourcesRequired[i];
         }
-        */
 
-        vector<int> taskCombination;
-        taskCombination.push_back(*task);
 
-        task = availableTasks.erase(task);
+        auto newNode = node;
+        newNode.push_back(*task);
 
-        allTaskCombinations.push_back(taskCombination);
-      //  break;
-      } else {
-        task++;
-      }
+        cout << "newNode: ";
+        for(auto e : newNode) 
+          cout << e << ", ";
+        cout << endl;
+
+        solution.push_back(newNode);
+
+        cout << "newNode: ";
+        for(auto e : newNode) 
+          cout << e << ", ";
+        cout << endl;
+
+        auto newAvailableTasks = availableTasks;
+
+        cout << "newNode: ";
+        for(auto e : newNode) 
+          cout << e << ", ";
+        cout << endl;
+
+        cout << "task: " << *task << endl;
+        newAvailableTasks.erase(task);
+        cout << "task: " << *task << endl;
+
+        cout << "newNode: ";
+        for(auto e : newNode) 
+          cout << e << ", ";
+        cout << endl;
+
+        auto partialSolution = allTaskCombinations(G, newResources, newAvailableTasks, newNode);
+
+        for (auto taskList : partialSolution) {
+          solution.push_back(taskList);
+        }
+      } 
+
+      task++;
+        cout << "task: " << *task << endl;
     }
 
-    return allTaskCombinations;
+    cout << "RETURN" << endl;
+    printSchedule(solution);
+    return solution;
 }
 
 vector<vector<int>> scheduleTasks(
@@ -139,8 +194,8 @@ vector<vector<int>> scheduleTasks(
 
     // Caso Base
     if (availableTasks.empty() && runningTasks.empty()) {
-      cout << "!!!! FOUND SOLUTION !!!! - " << level << endl;
-      printSchedule(schedule);
+      //cout << "!!!! FOUND SOLUTION !!!! - " << level << endl;
+      //printSchedule(schedule);
       return schedule;
     }
 
@@ -169,7 +224,7 @@ vector<vector<int>> scheduleTasks(
     }
 
     auto tasksCombinations = 
-      allTaskCombinations(G, resources, availableTasks);
+      allTaskCombinations(G, resources, availableTasks, vector<int>());
 
     vector<vector<int>> newSchedule = schedule;
     vector<int> newRunningTasks, newAvailableTasks, newResources;
