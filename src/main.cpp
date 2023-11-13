@@ -71,18 +71,11 @@ void readInputFile(std::ifstream& inputFile, RCPSP<int>& G, ProjectInformation& 
   }
 }
 
-vector<vector<int>> scheduleTasks(
-    RCPSP<int>* G, 
-    vector<int> resources,
-    vector<vector<int>> schedule,
-    vector<int> availableTasks,
-    vector<int> runningTasks,
-    vector<int> inDegrees,
-    vector<int> durations,
-    int level = -1
-  ) {
-    level++;
-    cout << "level: " << level << endl;
+void printSchedule(vector<vector<int>> schedule) {
+  if (schedule.empty()) {
+    cout << "Running tasks [numPeriod=" << 1 << "]: {}" << endl;
+  }
+
     for (auto i = 0; i < schedule.size(); i++) {
         cout << "Running tasks [numPeriod=" << i + 1 << "]: {";
         for (auto j = 0; j < schedule[i].size(); j++) {
@@ -94,9 +87,61 @@ vector<vector<int>> scheduleTasks(
         }
         cout << "}" << endl;
     }
+}
+
+vector<vector<int>> allTaskCombinations(
+    RCPSP<int>* G, 
+    vector<int> resources,
+    vector<int> availableTasks
+  ) {
+
+    vector<vector<int>> allTaskCombinations;
+
+    auto task = availableTasks.begin();
+    while (task != availableTasks.end()) {
+
+      if (G->hasResoucesForTask(*task, resources)) {
+        //auto taskVertex = G->findVertex(*task);
+
+        /*
+        for (int i = 0; i < 4; i++) {
+          resources[i] -= (*taskVertex)->resourcesRequired[i];
+        }
+        */
+
+        vector<int> taskCombination;
+        taskCombination.push_back(*task);
+
+        task = availableTasks.erase(task);
+
+        allTaskCombinations.push_back(taskCombination);
+      } else {
+        task++;
+      }
+    }
+
+    return allTaskCombinations;
+}
+
+vector<vector<int>> scheduleTasks(
+    RCPSP<int>* G, 
+    vector<int> resources,
+    vector<vector<int>> schedule,
+    vector<int> availableTasks,
+    vector<int> runningTasks,
+    vector<int> inDegrees,
+    vector<int> durations
+  ) {
+
+    // Caso base
+    if (availableTasks.empty() && runningTasks.empty()) {
+      return schedule;
+    }
 
     vector<int> newSchedulePart;
+    vector<vector<int>> bestSchedule;
 
+    // Atualiza as tarefas que estão executando
     auto task = runningTasks.begin();
     while (task != runningTasks.end()) {
       durations[*task - 1]--;
@@ -116,32 +161,43 @@ vector<vector<int>> scheduleTasks(
       }
     }
 
-    task = availableTasks.begin();
-    while (task != availableTasks.end()) {
-      if (G->hasResoucesForTask(*task, resources)) {
-        auto taskVertex = G->findVertex(*task);
 
-        for (int i = 0; i < 4; i++) {
-          resources[i] -= (*taskVertex)->resourcesRequired[i];
-        }
+    /*
+    auto newSchedule1 = schedule;
+    newSchedule1.push_back(newSchedulePart);
 
-        newSchedulePart.push_back(*task);
+    auto backtrackSchedule1 = scheduleTasks(G, resources, newSchedule1, availableTasks, runningTasks, 
+      inDegrees, durations, bestSchedule, level);
+    
+      bestSchedule = backtrackSchedule1;
+*/
+
+    auto tasksCombinations = allTaskCombinations(G, resources, availableTasks);
+    cout << endl;
+    printSchedule(tasksCombinations);
+
+    for (auto taskCombination : tasksCombinations) {
+
+      auto task = taskCombination.begin();
+      while (task != taskCombination.end()) {
         runningTasks.push_back(*task);
         task = availableTasks.erase(task);
-
-        auto newSchedule = schedule;
-        newSchedule.push_back(newSchedulePart);
-
-        scheduleTasks(G, resources, newSchedule, availableTasks, runningTasks, 
-          inDegrees, durations, level);
-      } else {
         task++;
       }
+
+      auto newSchedule = schedule;
+      newSchedule.push_back(taskCombination);
+
+      auto backtrackSchedule = scheduleTasks(G, resources, newSchedule, availableTasks, runningTasks, 
+        inDegrees, durations);
+      
+      if(bestSchedule.empty() || backtrackSchedule.size() < bestSchedule.size()) {
+        bestSchedule = backtrackSchedule;
+      }
+
     }
 
-    //schedule.push_back(newSchedulePart);
-
-    return schedule;
+    return bestSchedule;
 }
 
 int main(int argc, char* argv[]) {
@@ -186,7 +242,6 @@ int main(int argc, char* argv[]) {
         auto stopScheduleTasks = high_resolution_clock::now();
         durationScheduleTasks = duration_cast<microseconds>(stopScheduleTasks - startScheduleTasks);
 
-     /*
      string fileName = argv[1];
      std::replace( fileName.begin(), fileName.end(), '/', '-');
      string fileFolder = "log-files";
@@ -221,7 +276,6 @@ int main(int argc, char* argv[]) {
         }
 
      file.close();
-     */
 
     } catch (const std::exception& e) {
         cerr << "An exception occurred: " << e.what() << endl;
