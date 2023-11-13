@@ -133,12 +133,10 @@ vector<vector<int>> scheduleTasks(
     vector<int> runningTasks,
     vector<int> inDegrees,
     vector<int> durations,
-    int level = -1
+    int level = -2
   ) {
     level++;
 
-    // cout << "Resources: " << resources[0] << " " << resources[1] << " " << resources[2] << " " << resources[3];
-    // cout << endl << level;
     // Caso Base
     if (availableTasks.empty() && runningTasks.empty()) {
       cout << "!!!! FOUND SOLUTION !!!! - " << level << endl;
@@ -174,38 +172,33 @@ vector<vector<int>> scheduleTasks(
       allTaskCombinations(G, resources, availableTasks);
 
     vector<vector<int>> newSchedule = schedule;
-    vector<int> newRunningTasks, newAvailableTasks;
+    vector<int> newRunningTasks, newAvailableTasks, newResources;
 
     // Caso em que não tem nenhuma taks disponível para ser feita, mas tem task executando
     if(tasksCombinations.empty()) {
-      auto newSchedule = schedule;
+      if(!newSchedulePart.empty())
+        newSchedule.push_back(newSchedulePart);
 
-      auto aux = schedule[schedule.size() - 1];
-      for (auto task : newSchedulePart) {
-        aux.push_back(task);
-      }
-
-      std::sort(aux.begin(), aux.end());
-      aux.erase(std::unique(aux.begin(), aux.end()), aux.end());
-
-      newSchedule.push_back(aux);
       return scheduleTasks(G, resources, newSchedule, availableTasks, 
       runningTasks, newInDegrees, durations, level);
     }
 
     for (vector<int> taskCombination : tasksCombinations) {
-      newRunningTasks = runningTasks;
       newSchedule = schedule;
+      newRunningTasks = runningTasks;
       newAvailableTasks = availableTasks;
 
       // Colocar cada uma das tarefas para executar nesse estado
+      auto temp = newSchedulePart;
       auto task = taskCombination.begin();
+      newResources = resources;
       while (task != taskCombination.end()) {
         newRunningTasks.push_back(*task);
+        temp.push_back(*task);
 
         auto taskVertex = G->findVertex(*task);
         for (int i = 0; i < 4; i++) {
-          resources[i] -= (*taskVertex)->resourcesRequired[i];
+          newResources[i] -= (*taskVertex)->resourcesRequired[i];
         }
         
         auto it = std::find(newAvailableTasks.begin(), newAvailableTasks.end(), *task);
@@ -215,18 +208,9 @@ vector<vector<int>> scheduleTasks(
 
         task++;
       }
-
-      auto aux = taskCombination;
-      for (auto task : newSchedulePart) {
-        aux.push_back(task);
-      }
-
-      std::sort(aux.begin(), aux.end());
-      aux.erase(std::unique(aux.begin(), aux.end()), aux.end());
-
-      newSchedule.push_back(aux);
+      newSchedule.push_back(temp);
       
-      auto backtrackSchedule = scheduleTasks(G, resources, newSchedule, newAvailableTasks, 
+      auto backtrackSchedule = scheduleTasks(G, newResources, newSchedule, newAvailableTasks, 
       newRunningTasks, newInDegrees, durations, level);
       
       if(bestSchedule.empty() || backtrackSchedule.size() < bestSchedule.size()) {
