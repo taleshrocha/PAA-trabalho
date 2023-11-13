@@ -182,7 +182,12 @@ vector<vector<int>> scheduleTasks(
     // Caso em que não tem nenhuma taks disponível para ser feita, mas tem task executando
     if(tasksCombinations.empty()) {
       auto newSchedule = schedule;
-      newSchedule.push_back(schedule[schedule.size() - 1]);
+
+      auto aux = schedule[schedule.size() - 1];
+      for (auto task : newSchedulePart) {
+        aux.push_back(task);
+      }
+      newSchedule.push_back(aux);
       return scheduleTasks(G, resources, newSchedule, availableTasks, 
       runningTasks, inDegrees, durations, level);
     }
@@ -231,11 +236,16 @@ vector<vector<int>> scheduleTasks(
       //cout << ". Size: " << taskCombination.size();
       //cout << endl;
 
-      newSchedule.push_back(taskCombination);
+      auto aux = taskCombination;
+      for (auto task : newSchedulePart) {
+        aux.push_back(task);
+      }
+      newSchedule.push_back(aux);
 
       //cout << "END ADD TO SCHEDULE ON LEVEL: " << level << endl;
 
       //cout << "BEGIN BACKATRACK - " << level << endl;
+      
 
       auto backtrackSchedule = scheduleTasks(G, resources, newSchedule, newAvailableTasks, 
       newRunningTasks, inDegrees, durations, level);
