@@ -110,12 +110,7 @@ vector<vector<int>> allTaskCombinations(
         newNode.push_back(*task);
         solution.push_back(newNode);
 
-        auto newAvailableTasks = availableTasks;
-        auto it = find(newAvailableTasks.begin(), newAvailableTasks.end(), *task);
-        if (it != newAvailableTasks.end()) {
-            newAvailableTasks.erase(it);
-        }
-
+        std::vector<int> newAvailableTasks(task+1, availableTasks.end());
         auto partialSolution = allTaskCombinations(G, newResources, newAvailableTasks, newNode);
         for (auto taskList : partialSolution) {
           solution.push_back(taskList);
@@ -140,8 +135,8 @@ vector<vector<int>> scheduleTasks(
 
     // Caso Base
     if (availableTasks.empty() && runningTasks.empty()) {
-      //cout << "!!!! FOUND SOLUTION !!!! - " << level << endl;
-      //printSchedule(schedule);
+      cout << "!!!! FOUND SOLUTION !!!! - " << level << endl;
+      printSchedule(schedule);
       return schedule;
     }
 
@@ -172,14 +167,6 @@ vector<vector<int>> scheduleTasks(
     auto tasksCombinations = 
       allTaskCombinations(G, resources, availableTasks, vector<int>());
 
-    cout << "Recursos: " << resources[0] << " " << resources[1] << " " << resources[2] << " " << resources[3] << endl;
-    for(auto i : tasksCombinations){
-      cout << "Comb {";
-      for(auto j : i){
-        cout << j << ", ";
-      }
-      cout << "}" << endl;
-    }
     vector<vector<int>> newSchedule = schedule;
     vector<int> newRunningTasks, newAvailableTasks, newResources;
 
@@ -210,11 +197,10 @@ vector<vector<int>> scheduleTasks(
           newResources[i] -= (*taskVertex)->resourcesRequired[i];
         }
         
-        auto it = std::find(newAvailableTasks.begin(), newAvailableTasks.end(), *task);
+        auto it = find(newAvailableTasks.begin(), newAvailableTasks.end(), *task);
         if (it != newAvailableTasks.end()) {
             newAvailableTasks.erase(it);
         }
-
         task++;
       }
       newSchedule.push_back(temp);
@@ -251,10 +237,8 @@ int main(int argc, char* argv[]) {
 
         // Read input
         readInputFile(inputFile, G, projectInfo, resourceAvailabilities);
-        /*
+
         cout << G.toString() << endl;
-        return 0;
-        */
 
         microseconds durationScheduleTasks(0);
         auto startScheduleTasks = high_resolution_clock::now();
