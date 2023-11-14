@@ -135,8 +135,8 @@ vector<vector<int>> scheduleTasks(
 
     // Caso Base
     if (availableTasks.empty() && runningTasks.empty()) {
-      cout << "!!!! FOUND SOLUTION !!!! - " << level << endl;
-      printSchedule(schedule);
+      // cout << "!!!! FOUND SOLUTION !!!! - " << level << endl;
+      // printSchedule(schedule);
       return schedule;
     }
 
@@ -204,12 +204,14 @@ vector<vector<int>> scheduleTasks(
         task++;
       }
       newSchedule.push_back(temp);
-      
-      auto backtrackSchedule = scheduleTasks(G, newResources, newSchedule, newAvailableTasks, 
-      newRunningTasks, newInDegrees, durations, level);
-      
-      if(bestSchedule.empty() || backtrackSchedule.size() < bestSchedule.size()) {
-        bestSchedule = backtrackSchedule;
+
+      if (bestSchedule.empty() || newSchedule.size() < bestSchedule.size()) {
+        auto backtrackSchedule = scheduleTasks(G, newResources, newSchedule, newAvailableTasks, 
+                                                newRunningTasks, newInDegrees, durations, level);
+
+        if (bestSchedule.empty() || backtrackSchedule.size() < bestSchedule.size()) {
+            bestSchedule = backtrackSchedule;
+        }
       }
     }
 
@@ -238,7 +240,7 @@ int main(int argc, char* argv[]) {
         // Read input
         readInputFile(inputFile, G, projectInfo, resourceAvailabilities);
 
-        cout << G.toString() << endl;
+        // cout << G.toString() << endl;
 
         microseconds durationScheduleTasks(0);
         auto startScheduleTasks = high_resolution_clock::now();

@@ -199,6 +199,15 @@ vector<int> getInDegrees() {
   return inDegrees;
 }
 
+  bool isTaskAvailable(T value, vector<int> resources) {
+    auto aux = findVertex(value);
+    for(int i = 0; i < 4; i++) {
+      if((*aux)->resourcesRequired[i] > resources[i])
+        return false;
+    }
+    return true;
+  }
+
   string toString() {
     stringstream ss;
     // For each vertex.
