@@ -1,5 +1,4 @@
 #include "../include/RCPSP.h"
-#include "../include/BacktrackTree.h"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -11,7 +10,6 @@
 #include <algorithm> 
 
 using sc::RCPSP;
-using bc::BacktrackTree;
 using namespace std::chrono;
 using namespace std;
 
