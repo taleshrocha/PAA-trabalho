@@ -119,6 +119,18 @@ vector<vector<int>> allTaskCombinations(
     return solution;
 }
 
+vector<int> getSmallerTasksCombinations(vector<vector<int>> allTasksCombinations) {
+    vector<int> smallerTasksCombinations = allTasksCombinations[0];
+
+    for(auto taskCombination : allTasksCombinations) {
+        if(taskCombination.size() < smallerTasksCombinations.size()) {
+            smallerTasksCombinations = taskCombination;
+        }
+    }
+
+    return smallerTasksCombinations;
+}
+
 vector<vector<int>> scheduleTasks(
     RCPSP<int>* G, 
     vector<int> resources,
@@ -133,14 +145,10 @@ vector<vector<int>> scheduleTasks(
 
     // Caso Base
     if (availableTasks.empty() && runningTasks.empty()) {
-      // cout << "!!!! FOUND SOLUTION !!!! - " << level << endl;
-      // printSchedule(schedule);
       return schedule;
     }
 
     vector<int> newSchedulePart;
-    vector<vector<int>> bestSchedule;
-    vector<int> newInDegrees = inDegrees;
 
     // Atualiza as tarefas que estão executando
     auto task = runningTasks.begin();
@@ -151,7 +159,7 @@ vector<vector<int>> scheduleTasks(
         newSchedulePart.push_back(*task);
         task++;
       } else {
-        G->taskCompleted(*task, availableTasks, newInDegrees);
+        G->taskCompleted(*task, availableTasks, inDegrees);
         auto taskVertex = G->findVertex(*task);
 
         for (int i = 0; i < 4; i++) {
@@ -165,55 +173,41 @@ vector<vector<int>> scheduleTasks(
     auto tasksCombinations = 
       allTaskCombinations(G, resources, availableTasks, vector<int>());
 
-    vector<vector<int>> newSchedule = schedule;
-    vector<int> newRunningTasks, newAvailableTasks, newResources;
 
     // Caso em que não tem nenhuma taks disponível para ser feita, mas tem task executando
     if(tasksCombinations.empty()) {
       if(!newSchedulePart.empty())
-        newSchedule.push_back(newSchedulePart);
+        schedule.push_back(newSchedulePart);
 
-      return scheduleTasks(G, resources, newSchedule, availableTasks, 
-      runningTasks, newInDegrees, durations, level);
+      return scheduleTasks(G, resources, schedule, availableTasks,
+      runningTasks, inDegrees, durations, level);
+    } else {
+        vector<int> smallerTasksCombinations = getSmallerTasksCombinations(tasksCombinations);
+
+        // Colocar cada uma das tarefas para executar nesse estado
+        auto temp = newSchedulePart;
+        task = smallerTasksCombinations.begin();
+        resources = resources;
+        while (task != smallerTasksCombinations.end()) {
+            runningTasks.push_back(*task);
+            temp.push_back(*task);
+
+            auto taskVertex = G->findVertex(*task);
+            for (int i = 0; i < 4; i++) {
+                resources[i] -= (*taskVertex)->resourcesRequired[i];
+            }
+
+            auto it = find(availableTasks.begin(), availableTasks.end(), *task);
+            if (it != availableTasks.end()) {
+                availableTasks.erase(it);
+            }
+            task++;
+        }
+        schedule.push_back(temp);
     }
 
-    for (vector<int> taskCombination : tasksCombinations) {
-      newSchedule = schedule;
-      newRunningTasks = runningTasks;
-      newAvailableTasks = availableTasks;
-
-      // Colocar cada uma das tarefas para executar nesse estado
-      auto temp = newSchedulePart;
-      auto task = taskCombination.begin();
-      newResources = resources;
-      while (task != taskCombination.end()) {
-        newRunningTasks.push_back(*task);
-        temp.push_back(*task);
-
-        auto taskVertex = G->findVertex(*task);
-        for (int i = 0; i < 4; i++) {
-          newResources[i] -= (*taskVertex)->resourcesRequired[i];
-        }
-        
-        auto it = find(newAvailableTasks.begin(), newAvailableTasks.end(), *task);
-        if (it != newAvailableTasks.end()) {
-            newAvailableTasks.erase(it);
-        }
-        task++;
-      }
-      newSchedule.push_back(temp);
-
-      if (bestSchedule.empty() || newSchedule.size() < bestSchedule.size()) {
-        auto backtrackSchedule = scheduleTasks(G, newResources, newSchedule, newAvailableTasks, 
-                                                newRunningTasks, newInDegrees, durations, level);
-
-        if (bestSchedule.empty() || backtrackSchedule.size() < bestSchedule.size()) {
-            bestSchedule = backtrackSchedule;
-        }
-      }
-    }
-
-    return bestSchedule;
+    return scheduleTasks(G, resources, schedule, availableTasks,
+                                                runningTasks, inDegrees, durations, level);
 }
 
 int main(int argc, char* argv[]) {
