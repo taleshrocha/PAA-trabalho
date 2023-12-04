@@ -365,10 +365,13 @@ vector<vector<int>> generateNeighbour(RCPSP<int>* G, vector<vector<int>> currSch
       swap(modifiedScheduleAux[task1-1][i], modifiedScheduleAux[task2-1][i]);
     }
 
-    if (task1Start == task2Start)
-      return generateNeighbour(G, currSchedule, tabuList, resources);
-    numTentativas++;
-  } while(numTentativas < 100 && !isValidSchedule(G, modifiedScheduleAux, task1, task2, task1Start, task2Start, resources));
+      numTentativas++;
+
+      if (task1Start == task2Start)
+        numTentativas = 0;
+
+    //generateNeighbour(G, currSchedule, tabuList, resources);
+  } while((numTentativas < 100 && !isValidSchedule(G, modifiedScheduleAux, task1, task2, task1Start, task2Start, resources)) || task1Start == task2Start);
 
   cout << task1 << "  " << task2 << endl;
 
@@ -392,7 +395,7 @@ vector<vector<int>> generateNeighbour(RCPSP<int>* G, vector<vector<int>> currSch
   }
   cout << endl;
 
-  return modifyScheduleRepresentation(G, modifiedScheduleAux, 1);
+  //return modifyScheduleRepresentation(G, modifiedScheduleAux, 1);
 
   if (numTentativas < 100)
     tabuList.push_back(make_pair(task1, task2));
@@ -411,7 +414,7 @@ vector<vector<int>> tabuSearch(RCPSP<int>* G, vector<int> resources, int maxIter
 
   vector<pair<int,int>> tabuList;
   for (int i = 0; i < maxIter; i++) {
-    vector<vector<int>> currSchedule = generateNeighbour(G, currSchedule, tabuList, resources);
+    currSchedule = generateNeighbour(G, currSchedule, tabuList, resources);
     cout << "ENTROU" << endl;
     //return neighbourSchedule;
     //if (neighbourSchedule.size() <= currSchedule.size()) {
