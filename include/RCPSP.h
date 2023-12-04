@@ -23,7 +23,6 @@ using std::endl;
 using std::stringstream;
 using std::pair;
 using std::make_pair;
-//using std::numeric_limits;
 
 namespace sc {
 
@@ -48,12 +47,14 @@ class RCPSP {
     int duration;
     int resourcesRequired[4] = {};
     Edge* next;
+    vector<int> pred;
 
-    Vertex(T d = T{}, Edge* edge = nullptr, int inDegree = 0, int dur = 0)
+    Vertex(T d = T{}, Edge* edge = nullptr, int inDegree = 0, int dur = 0, vector<int> predy = {})
       : data{ d },
         inDegree{ inDegree },
         next{ edge },
-        duration{ dur }
+        duration{ dur },
+        pred{ predy }
     { /* empty */ }
   };
 
@@ -112,10 +113,12 @@ class RCPSP {
       adjacencyList.push_back(new Vertex(values.first, n, 0));
 
     auto temp2 = findVertex(values.second);
-    if (temp2 != end()) 
+    if (temp2 != end()){
       (*temp2)->inDegree++;
+      (*temp2)->pred.push_back(values.first);
+    }
     else 
-      adjacencyList.push_back(new Vertex(values.second, nullptr, 1));
+      adjacencyList.push_back(new Vertex(values.second, nullptr, 1, 0, {values.first}));
   }
 
   iterator findVertex(T value) {
@@ -222,6 +225,8 @@ vector<int> getInDegrees() {
       // For each edge of "vertex".
       for (auto edge = (*vertex)->next; edge != nullptr; edge = edge->next)
         ss << "\t" << "EDGE: " << edge->data << endl;
+      for (auto i : (*vertex)->pred)
+        ss << "\t" << "PRED: " << i << endl;
       ss << endl;
     }
 
