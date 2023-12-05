@@ -496,7 +496,7 @@ int main(int argc, char *argv[]) {
         cout << "Time: " << durationScheduleTasks.count() << " microseconds" << endl;
         file << "Time: " << durationScheduleTasks.count() << " microseconds" << endl;
 
-        cout << "Task schedule considering resource constraints and precedence relations -- tabu" << endl;
+        cout << "Task schedule considering resource constraints and precedence relations -- guloso" << endl;
         file << "Task schedule considering resource constraints and precedence relations:" << endl;
 
         for (auto i = 0; i < S.size(); i++) {
@@ -517,7 +517,7 @@ int main(int argc, char *argv[]) {
 
         cout << "Makespan: " << S2.size() << endl;
         cout << "Time: " << durationScheduleTasks2.count() << " microseconds" << endl;
-        cout << "Task schedule considering resource constraints and precedence relations -- guloso" << endl;
+        cout << "Task schedule considering resource constraints and precedence relations -- tabu" << endl;
 
         for (auto i = 0; i < S2.size(); i++) {
             cout << "Running tasks [numPeriod=" << i + 1 << "]: {";
