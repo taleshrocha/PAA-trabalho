@@ -451,9 +451,10 @@ int main(int argc, char *argv[]) {
         readInputFile(inputFile, G, projectInfo, resourceAvailabilities);
 
         microseconds durationScheduleTasks(0);
+        microseconds durationScheduleTasks2(0);
+
         auto startScheduleTasks = high_resolution_clock::now();
 
-        /*
         vector<vector<int>> S = scheduleTasksGuloso(
                 &G,
                 resourceAvailabilities,
@@ -463,18 +464,23 @@ int main(int argc, char *argv[]) {
                 G.getInDegrees(),
                 G.getDurations()
         );
-        */
 
-        vector<vector<int>> S = tabuSearch(
+        auto stopScheduleTasks = high_resolution_clock::now();
+
+        readInputFile(inputFile, G, projectInfo, resourceAvailabilities);
+
+        auto startScheduleTasks2 = high_resolution_clock::now();
+
+        vector<vector<int>> S2 = tabuSearch(
                 &G,
                 resourceAvailabilities,
                 5
         );
 
-        auto stopScheduleTasks = high_resolution_clock::now();
-        durationScheduleTasks = duration_cast<microseconds>(stopScheduleTasks - startScheduleTasks);
+        auto stopScheduleTasks2 = high_resolution_clock::now();
 
-        //vector<vector<int>> schedule = scheduleTasks(&G, resourceAvailabilities);
+        durationScheduleTasks = duration_cast<microseconds>(stopScheduleTasks - startScheduleTasks);
+        durationScheduleTasks2 = duration_cast<microseconds>(stopScheduleTasks2 - startScheduleTasks2);
 
         string fileName = argv[1];
         std::replace(fileName.begin(), fileName.end(), '/', '-');
@@ -490,7 +496,7 @@ int main(int argc, char *argv[]) {
         cout << "Time: " << durationScheduleTasks.count() << " microseconds" << endl;
         file << "Time: " << durationScheduleTasks.count() << " microseconds" << endl;
 
-        cout << "Task schedule considering resource constraints and precedence relations:" << endl;
+        cout << "Task schedule considering resource constraints and precedence relations -- tabu" << endl;
         file << "Task schedule considering resource constraints and precedence relations:" << endl;
 
         for (auto i = 0; i < S.size(); i++) {
@@ -507,6 +513,26 @@ int main(int argc, char *argv[]) {
             }
             cout << "}" << endl;
             file << "}" << endl;
+        }
+
+        cout << "Makespan: " << S2.size() << endl;
+        cout << "Time: " << durationScheduleTasks2.count() << " microseconds" << endl;
+        cout << "Task schedule considering resource constraints and precedence relations -- guloso" << endl;
+
+        for (auto i = 0; i < S2.size(); i++) {
+            cout << "Running tasks [numPeriod=" << i + 1 << "]: {";
+            //file << "Running tasks [numPeriod=" << i + 1 << "]: {";
+            for (auto j = 0; j < S2[i].size(); j++) {
+                if (j == S2[i].size() - 1) {
+                    cout << S[i][j];
+                    //file << S[i][j];
+                    break;
+                }
+                cout << S2[i][j] << ", ";
+                //file << S2[i][j] << ", ";
+            }
+            cout << "}" << endl;
+            //file << "}" << endl;
         }
 
         file.close();
